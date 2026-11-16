@@ -5,10 +5,18 @@ import { prismaRepository } from './repository';
 import { emailProvider, tutorProvider } from './providers';
 const db = new PrismaClient();
 await db.$connect();
+const trustProxy = process.env.TRUST_PROXY
+  ? /^\d+$/.test(process.env.TRUST_PROXY)
+    ? Number(process.env.TRUST_PROXY)
+    : process.env.TRUST_PROXY === 'true'
+      ? true
+      : process.env.TRUST_PROXY
+  : undefined;
 const app = createApp(prismaRepository(db), {
   origins: (process.env.CORS_ORIGINS ?? 'http://localhost:8081,http://127.0.0.1:8081').split(','),
   email: emailProvider(process.env),
   tutor: tutorProvider(process.env),
+  trustProxy,
 });
 const server = app.listen(Number(process.env.PORT ?? 4000), () =>
   console.log('HanziGo API listening'),

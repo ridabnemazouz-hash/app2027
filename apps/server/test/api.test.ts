@@ -38,7 +38,12 @@ class MemoryRepo implements Repository {
     this.sessions.delete(hash);
   }
   async createReset(hash: string, id: string, expires: Date) {
+    // Match prismaRepository: a new request replaces all prior tokens.
+    for (const [k, r] of this.resets) if (r.id === id) this.resets.delete(k);
     this.resets.set(hash, { id, expires });
+  }
+  async deleteResets(id: string) {
+    for (const [k, r] of this.resets) if (r.id === id) this.resets.delete(k);
   }
   async resetPassword(hash: string, passwordHash: string) {
     const r = this.resets.get(hash);
@@ -242,4 +247,46 @@ test('provider response is labeled generated and receives requested locale and l
     .send({ message: 'Explain 地', locale: 'ar', level: 9 })
     .expect(200);
   assert.equal(response.body.generated, true);
+});
+test('failed reset email delivery leaves no usable reset token', async () => {
+  let captured = '';
+  const repo = new MemoryRepo(),
+    app = createApp(repo, {
+      email: {
+        async sendReset(_to, token) {
+          captured = token;
+          throw new Error('webhook unreachable');
+        },
+      },
+    });
+  await register(app);
+  await request(app).post('/auth/reset-request').send({ email: 'learner@example.com' }).expect(500);
+  assert.equal(captured.length, 43);
+  assert.equal(repo.resets.size, 0);
+  await request(app)
+    .post('/auth/reset')
+    .send({ token: captured, password: 'new-password-1234' })
+    .expect(400);
+});
+test('a second reset request replaces the first token', async () => {
+  const delivered: string[] = [];
+  const app = createApp(new MemoryRepo(), {
+    email: {
+      async sendReset(_to, token) {
+        delivered.push(token);
+      },
+    },
+  });
+  await register(app);
+  await request(app).post('/auth/reset-request').send({ email: 'learner@example.com' }).expect(200);
+  await request(app).post('/auth/reset-request').send({ email: 'learner@example.com' }).expect(200);
+  assert.equal(delivered.length, 2);
+  await request(app)
+    .post('/auth/reset')
+    .send({ token: delivered[0], password: 'new-password-1234' })
+    .expect(400);
+  await request(app)
+    .post('/auth/reset')
+    .send({ token: delivered[1], password: 'new-password-1234' })
+    .expect(200);
 });

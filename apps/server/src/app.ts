@@ -29,9 +29,17 @@ const publicUser = (u: User) => ({
 const fail = (status: number, code: string) => Object.assign(new Error(code), { status, code });
 export function createApp(
   repo: Repository,
-  options: { origins?: string[]; email?: EmailProvider; tutor?: TutorProvider } = {},
+  options: {
+    origins?: string[];
+    email?: EmailProvider;
+    tutor?: TutorProvider;
+    trustProxy?: string | number | boolean;
+  } = {},
 ) {
   const app = express();
+  // Only trust X-Forwarded-For when the deployment is actually behind a
+  // proxy the operator controls; otherwise rate limits key on the socket IP.
+  if (options.trustProxy !== undefined) app.set('trust proxy', options.trustProxy);
   app.disable('x-powered-by');
   app.use(helmet());
   app.use(cors({ origin: options.origins ?? ['http://localhost:8081', 'http://127.0.0.1:8081'] }));
@@ -103,7 +111,14 @@ export function createApp(
     if (u) {
       const token = newToken();
       await repo.createReset(tokenHash(token), u.id, new Date(Date.now() + 30 * 60000));
-      await options.email.sendReset(email, token);
+      try {
+        await options.email.sendReset(email, token);
+      } catch (error) {
+        // Never leave a live reset token behind for an email that was
+        // not delivered; the user can simply request a new one.
+        await repo.deleteResets(u.id);
+        throw error;
+      }
     }
     res.json({ accepted: true });
   });

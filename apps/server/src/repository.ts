@@ -16,6 +16,7 @@ export interface Repository {
   session(hash: string): Promise<User | null>;
   revoke(hash: string): Promise<void>;
   createReset(hash: string, id: string, expires: Date): Promise<void>;
+  deleteResets(id: string): Promise<void>;
   resetPassword(hash: string, passwordHash: string): Promise<boolean>;
   deleteUser(id: string): Promise<void>;
   sync(id: string, events: LearningEvent[]): Promise<LearningEvent[]>;
@@ -58,6 +59,9 @@ export function prismaRepository(db: PrismaClient): Repository {
         db.passwordReset.deleteMany({ where: { userId: id } }),
         db.passwordReset.create({ data: { tokenHash: hash, userId: id, expiresAt: expires } }),
       ]);
+    },
+    async deleteResets(id) {
+      await db.passwordReset.deleteMany({ where: { userId: id } });
     },
     async resetPassword(hash, passwordHash) {
       return db.$transaction(async (tx) => {
