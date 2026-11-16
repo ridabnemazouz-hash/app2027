@@ -171,7 +171,7 @@ export function LessonScreen({ id }: { id: string }) {
                   {s.localize(g.point)}
                 </Txt>
                 <Txt mandarin weight="600" size={19}>
-                  {g.structureLocalized?.[s.locale] ?? g.structure}
+                  {g.structureLocalized ? s.localize(g.structureLocalized) : g.structure}
                 </Txt>
                 <Txt>{s.localize(g.explanation)}</Txt>
                 <Txt size={12} color={c.red}>

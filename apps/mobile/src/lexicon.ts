@@ -1,4 +1,4 @@
-import type { Locale, Vocabulary } from '../../../packages/core/src';
+import { contentLocaleFor, type Locale, type Vocabulary } from '../../../packages/core/src';
 import dataset from '../../../data/curriculum/hsk3-gushi-2025/words.json';
 import { content } from './state';
 
@@ -47,9 +47,11 @@ export function findWord(id: string | undefined) {
   return id ? byId.get(id) : undefined;
 }
 export function wordMeaning(word: LexiconWord, locale: Locale) {
-  return word.translation[locale] || word.translation.en;
+  // fr/ja have no content translations yet: fall back to English,
+  // which missingTranslation() reports so the UI can label it.
+  return word.translation[contentLocaleFor(locale)] || word.translation.en;
 }
 export function missingTranslation(word: LexiconWord, locale: Locale) {
-  return locale !== 'en' && !word.translation[locale];
+  return locale !== 'en' && !word.translation[contentLocaleFor(locale)];
 }
 export const referenceSummary = dataset.summary;

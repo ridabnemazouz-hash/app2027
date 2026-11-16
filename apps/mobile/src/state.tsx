@@ -13,6 +13,7 @@ import {
   type LearningEvent,
   type Locale,
   type SyncCursor,
+  contentLocaleFor,
   type Localized,
   type Preferences,
 } from '../../../packages/core/src';
@@ -22,6 +23,16 @@ import { storage, tokens } from './storage';
 import { api, ApiError } from './api';
 export const content: Curriculum = curriculumSchema.parse(rawContent);
 export type MessageKey = keyof typeof messages.en;
+/** All interface locales, in picker order, with their native names. */
+export const uiLocales: Locale[] = ['en', 'zh', 'ar', 'es', 'fr', 'ja'];
+export const localeNames: Record<Locale, string> = {
+  en: 'English',
+  zh: '简体中文',
+  ar: 'العربية',
+  es: 'Español',
+  fr: 'Français',
+  ja: '日本語',
+};
 type User = { id: string; name: string; email: string; preferences: Preferences };
 type Snapshot = {
   events: LearningEvent[];
@@ -302,7 +313,9 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     locale,
     rtl: locale === 'ar',
     t,
-    localize: (v) => v[locale],
+    // Content exists in en/zh/ar/es; fr/ja interfaces read English
+    // content through this explicit fallback (see core ContentLocale).
+    localize: (v) => v[contentLocaleFor(locale)],
     setPreferences,
     record,
     sync,

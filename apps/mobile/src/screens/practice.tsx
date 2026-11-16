@@ -65,7 +65,8 @@ export function PracticeScreen() {
   const itemId = ids[index],
     v = findWord(itemId),
     g = content.grammar.find((g) => g.id === itemId);
-  const text = v?.simplified ?? g?.structureLocalized?.[s.locale] ?? g?.structure;
+  const text =
+    v?.simplified ?? (g?.structureLocalized ? s.localize(g.structureLocalized) : g?.structure);
   const answer = v ? wordMeaning(v, s.locale) : g ? s.localize(g.explanation) : '';
   const character = content.characters.find((c) => c.level === s.preferences.targetLevel)!;
   const exercises = selectExercises(

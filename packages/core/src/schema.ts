@@ -1,7 +1,17 @@
 import { z } from 'zod';
 
-export const localeSchema = z.enum(['en', 'zh', 'ar', 'es']);
+/** Interface locales the product supports. */
+export const localeSchema = z.enum(['en', 'zh', 'ar', 'es', 'fr', 'ja']);
 export type Locale = z.infer<typeof localeSchema>;
+/**
+ * Locales with actual curriculum content translations. Interface
+ * locales beyond these (fr, ja) fall back to English content; the
+ * fallback is explicit in the client, never a missing-key crash.
+ */
+export const contentLocaleSchema = z.enum(['en', 'zh', 'ar', 'es']);
+export type ContentLocale = z.infer<typeof contentLocaleSchema>;
+export const contentLocaleFor = (locale: Locale): ContentLocale =>
+  locale === 'fr' || locale === 'ja' ? 'en' : locale;
 export const localizedSchema = z.object({
   en: z.string().min(1),
   zh: z.string().min(1),

@@ -57,7 +57,7 @@ export function TutorScreen() {
                 {s.localize(g.point)}
               </Txt>
               <Txt mandarin size={22} color={c.red}>
-                {g.structureLocalized?.[s.locale] ?? g.structure}
+                {g.structureLocalized ? s.localize(g.structureLocalized) : g.structure}
               </Txt>
               <Txt>{s.localize(g.explanation)}</Txt>
               <View style={{ padding: 20, backgroundColor: c.soft, borderRadius: 14, gap: 8 }}>

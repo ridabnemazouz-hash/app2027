@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
-import type { Locale, Preferences } from '../../../../packages/core/src';
-import { content, useLearning, type MessageKey } from '../state';
+import type { Preferences } from '../../../../packages/core/src';
+import { content, localeNames, uiLocales, useLearning, type MessageKey } from '../state';
 import {
   Badge,
   Button,
@@ -76,10 +76,10 @@ export function SettingsScreen() {
         <Card>
           <Txt weight="600">{s.t('interfaceLanguage')}</Txt>
           <View style={styles.wrap}>
-            {(['en', 'zh', 'ar', 'es'] as Locale[]).map((locale) => (
+            {uiLocales.map((locale) => (
               <Chip
                 key={locale}
-                label={{ en: 'English', zh: '简体中文', ar: 'العربية', es: 'Español' }[locale]}
+                label={localeNames[locale]}
                 active={s.locale === locale}
                 onPress={() => {
                   void s.setPreferences({ locale });

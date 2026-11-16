@@ -7,7 +7,7 @@
     "web": "npm --prefix apps/mobile run web",
     "server": "tsx watch apps/server/src/main.ts",
     "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p apps/server && tsc --noEmit -p apps/mobile",
-    "test": "tsx --test --test-concurrency=1 packages/core/test/*.test.ts apps/server/test/*.test.ts",
+    "test": "tsx --test --test-concurrency=1 packages/core/test/*.test.ts apps/server/test/*.test.ts apps/mobile/test/*.test.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

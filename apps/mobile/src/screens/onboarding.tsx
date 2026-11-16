@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Image, View } from 'react-native';
 import { router } from 'expo-router';
-import type { Locale, Preferences } from '../../../../packages/core/src';
-import { useLearning } from '../state';
+import type { Preferences } from '../../../../packages/core/src';
+import { localeNames, uiLocales, useLearning } from '../state';
 import journeyArt from '../../assets/journey-art.png';
 import {
   Badge,
@@ -68,10 +68,10 @@ export function OnboardingScreen() {
             <Heading title={s.t('welcome')} subtitle={s.t('welcomeSub')} />
             <Txt weight="600">{s.t('chooseLanguage')}</Txt>
             <View style={styles.grid}>
-              {(['en', 'zh', 'ar', 'es'] as Locale[]).map((locale) => (
+              {uiLocales.map((locale) => (
                 <View key={locale} style={{ width: '47%' }}>
                   <Chip
-                    label={{ en: 'English', zh: '简体中文', ar: 'العربية', es: 'Español' }[locale]}
+                    label={localeNames[locale]}
                     active={s.locale === locale}
                     onPress={() => {
                       void s.setPreferences({ locale });
