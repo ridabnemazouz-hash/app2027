@@ -38,6 +38,24 @@ export const storage = {
       raw,
     );
   },
+  async getByPrefix<T>(prefix: string): Promise<{ key: string; value: T }[]> {
+    if (Platform.OS === 'web') {
+      return Object.keys(globalThis.localStorage)
+        .filter((k) => k.startsWith(`hanzigo:${prefix}`))
+        .map((k) => ({
+          key: k.slice('hanzigo:'.length),
+          value: JSON.parse(globalThis.localStorage.getItem(k)!) as T,
+        }));
+    }
+    const rows = await (
+      await db()
+    ).getAllAsync<{ key: string; value: string }>(
+      'SELECT key, value FROM kv WHERE substr(key,1,?) = ?',
+      prefix.length,
+      prefix,
+    );
+    return rows.map((r) => ({ key: r.key, value: JSON.parse(r.value) as T }));
+  },
   async removePrefix(prefix: string) {
     if (Platform.OS === 'web') {
       const keys = Object.keys(globalThis.localStorage).filter((k) =>

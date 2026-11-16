@@ -356,7 +356,8 @@
     "playRecording": "Play my recording",
     "micDenied": "Microphone access was not granted. You can still listen and repeat aloud.",
     "speakingGuide": "Listen to the model, record yourself, then compare. Focus on the tones; there is no automatic score.",
-    "recordingUnsupported": "Recording is not available on this device or browser. You can still listen and repeat aloud."
+    "recordingUnsupported": "Recording is not available on this device or browser. You can still listen and repeat aloud.",
+    "replayDrawing": "Replay drawing"
   },
   "zh": {
     "home": "今天",
@@ -715,7 +716,8 @@
     "playRecording": "播放我的录音",
     "micDenied": "未获得麦克风权限。你仍然可以听并大声跟读。",
     "speakingGuide": "听示范，录下自己的声音，然后对比。注意声调；没有自动评分。",
-    "recordingUnsupported": "此设备或浏览器不支持录音。你仍然可以听并大声跟读。"
+    "recordingUnsupported": "此设备或浏览器不支持录音。你仍然可以听并大声跟读。",
+    "replayDrawing": "回放书写"
   },
   "ar": {
     "home": "اليوم",
@@ -1074,7 +1076,8 @@
     "playRecording": "تشغيل تسجيلي",
     "micDenied": "لم يتم منح إذن الميكروفون. يمكنك الاستماع والتكرار بصوت عالٍ.",
     "speakingGuide": "استمع إلى النموذج، سجل نفسك، ثم قارن. ركز على النغمات؛ لا توجد درجة تلقائية.",
-    "recordingUnsupported": "التسجيل غير متاح على هذا الجهاز أو المتصفح. يمكنك الاستماع والتكرار بصوت عالٍ."
+    "recordingUnsupported": "التسجيل غير متاح على هذا الجهاز أو المتصفح. يمكنك الاستماع والتكرار بصوت عالٍ.",
+    "replayDrawing": "إعادة عرض الرسم"
   },
   "es": {
     "home": "Hoy",
@@ -1433,7 +1436,8 @@
     "playRecording": "Escuchar mi grabación",
     "micDenied": "No se concedió acceso al micrófono. Aún puedes escuchar y repetir en voz alta.",
     "speakingGuide": "Escucha el modelo, grábate y compara. Concéntrate en los tonos; no hay puntuación automática.",
-    "recordingUnsupported": "La grabación no está disponible en este dispositivo o navegador. Aún puedes escuchar y repetir en voz alta."
+    "recordingUnsupported": "La grabación no está disponible en este dispositivo o navegador. Aún puedes escuchar y repetir en voz alta.",
+    "replayDrawing": "Reproducir dibujo"
   },
   "fr": {
     "home": "Aujourd'hui",
@@ -1792,7 +1796,8 @@
     "playRecording": "Écouter mon enregistrement",
     "micDenied": "L'accès au microphone n'a pas été accordé. Vous pouvez toujours écouter et répéter à voix haute.",
     "speakingGuide": "Écoutez le modèle, enregistrez-vous, puis comparez. Concentrez-vous sur les tons ; il n'y a pas de note automatique.",
-    "recordingUnsupported": "L'enregistrement n'est pas disponible sur cet appareil ou ce navigateur. Vous pouvez toujours écouter et répéter à voix haute."
+    "recordingUnsupported": "L'enregistrement n'est pas disponible sur cet appareil ou ce navigateur. Vous pouvez toujours écouter et répéter à voix haute.",
+    "replayDrawing": "Rejouer le tracé"
   },
   "ja": {
     "home": "今日",
@@ -2151,6 +2156,7 @@
     "playRecording": "自分の録音を再生",
     "micDenied": "マイクの許可が得られませんでした。聞いて声に出して繰り返すことはできます。",
     "speakingGuide": "モデルを聞き、自分を録音して比べてください。声調に集中しましょう。自動採点はありません。",
-    "recordingUnsupported": "このデバイスまたはブラウザでは録音できません。聞いて声に出して繰り返すことはできます。"
+    "recordingUnsupported": "このデバイスまたはブラウザでは録音できません。聞いて声に出して繰り返すことはできます。",
+    "replayDrawing": "描画を再生"
   }
 }

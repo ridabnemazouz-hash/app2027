@@ -6,7 +6,7 @@ import { Button, Row, Txt, usePalette } from './ui';
 export function Drawing({
   onSave,
 }: {
-  onSave: (paths: string[], seconds: number) => Promise<void>;
+  onSave: (paths: string[], seconds: number, size: number) => Promise<void>;
 }) {
   const s = useLearning(),
     c = usePalette(),
@@ -116,6 +116,7 @@ export function Drawing({
                 60,
                 Math.max(1, Math.round((Date.now() - (started.current ?? Date.now())) / 1000)),
               ),
+              size,
             )
               .then(() => {
                 setMessage(s.t('savedWriting'));

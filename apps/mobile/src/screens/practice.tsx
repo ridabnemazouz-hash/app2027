@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useLocalSearchParams, router } from 'expo-router';
 import { dueItems, getLessons, type Exercise } from '../../../../packages/core/src';
 import { content, useLearning } from '../state';
@@ -55,7 +56,13 @@ export function PracticeScreen() {
     [quality, setQuality] = useState(4),
     [assessmentIndex, setAssessmentIndex] = useState(0),
     [assessmentAnswered, setAssessmentAnswered] = useState(false),
-    [score, setScore] = useState(0);
+    [score, setScore] = useState(0),
+    [charId, setCharId] = useState<string | null>(null),
+    [drawings, setDrawings] = useState<
+      { key: string; paths: string[]; size: number; at: string; quality: number }[]
+    >([]),
+    [replay, setReplay] = useState<{ paths: string[]; size: number } | null>(null),
+    [savedTick, setSavedTick] = useState(0);
   const reviewStarted = useRef(Date.now());
   useEffect(() => {
     if (params.mode) setMode(params.mode);
@@ -84,7 +91,37 @@ export function PracticeScreen() {
   const text =
     v?.simplified ?? (g?.structureLocalized ? s.localize(g.structureLocalized) : g?.structure);
   const answer = v ? wordMeaning(v, s.locale) : g ? s.localize(g.explanation) : '';
-  const character = content.characters.find((c) => c.level === s.preferences.targetLevel)!;
+  const character =
+    content.characters.find((ch) => ch.id === charId) ??
+    content.characters.find((c) => c.level === s.preferences.targetLevel)!;
+  // Saved drawings for the selected character, newest first.
+  useEffect(() => {
+    if (mode !== 'writing') return;
+    let live = true;
+    void storage
+      .getByPrefix<{ paths: string[]; quality: number; at: string; size?: number }>(
+        `drawing:${s.owner}:${character.id}:`,
+      )
+      .then((rows) => {
+        if (!live) return;
+        setDrawings(
+          rows
+            .map((r) => ({
+              key: r.key,
+              paths: r.value.paths,
+              size: r.value.size ?? 350,
+              at: r.value.at,
+              quality: r.value.quality,
+            }))
+            .sort((a, b) => b.key.localeCompare(a.key))
+            .slice(0, 5),
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [mode, s.owner, character.id, savedTick]);
   const exercises = selectExercises(
     getLessons(content)
       .filter((l) => l.id.startsWith(`lesson-${s.preferences.targetLevel}-`))
@@ -134,6 +171,19 @@ export function PracticeScreen() {
       <View style={{ maxWidth: 800, width: '100%', alignSelf: 'center', gap: 20 }}>
         {mode === 'writing' ? (
           <>
+            <View style={styles.wrap}>
+              {content.characters.map((ch) => (
+                <Chip
+                  key={ch.id}
+                  label={`${ch.character} · HSK ${ch.level}`}
+                  active={character.id === ch.id}
+                  onPress={() => {
+                    setCharId(ch.id);
+                    setReplay(null);
+                  }}
+                />
+              ))}
+            </View>
             <Card>
               <Badge>{s.t('selfAssessment')}</Badge>
               <Row style={{ justifyContent: 'space-between' }}>
@@ -163,11 +213,12 @@ export function PracticeScreen() {
                 ))}
               </View>
               <Drawing
-                onSave={async (paths, seconds) => {
+                onSave={async (paths, seconds, size) => {
                   await storage.set(`drawing:${s.owner}:${character.id}:${Date.now()}`, {
                     paths,
                     quality,
                     at: new Date().toISOString(),
+                    size,
                   });
                   await s.record({
                     type: 'writing',
@@ -176,6 +227,7 @@ export function PracticeScreen() {
                     skill: 'writing',
                     seconds,
                   });
+                  setSavedTick((t) => t + 1);
                 }}
               />
               <Txt size={11} color={c.muted}>
@@ -197,6 +249,34 @@ export function PracticeScreen() {
                   <Badge>{s.t(e.quality === 2 ? 'hard' : e.quality === 5 ? 'easy' : 'good')}</Badge>
                 </Row>
               ))}
+              {drawings.map((d) => (
+                <Row key={d.key} style={{ justifyContent: 'space-between' }}>
+                  <Txt size={12}>
+                    {new Intl.DateTimeFormat(s.locale, {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    }).format(new Date(d.at))}
+                  </Txt>
+                  <Button
+                    small
+                    variant="ghost"
+                    label={s.t('replayDrawing')}
+                    icon="play-outline"
+                    onPress={() => setReplay({ paths: d.paths, size: d.size })}
+                  />
+                </Row>
+              ))}
+              {replay ? (
+                <View style={{ alignItems: 'center', gap: 10 }}>
+                  <ReplayDrawing paths={replay.paths} size={replay.size} />
+                  <Button
+                    small
+                    variant="secondary"
+                    label={s.t('close')}
+                    onPress={() => setReplay(null)}
+                  />
+                </View>
+              ) : null}
             </Card>
           </>
         ) : mode === 'matching' ? (
@@ -865,5 +945,66 @@ function SpeakingLab() {
         />
       </Row>
     </Card>
+  );
+}
+
+/** Stroke-by-stroke replay of a saved freehand drawing. */
+function ReplayDrawing({ paths, size }: { paths: string[]; size: number }) {
+  const s = useLearning(),
+    c = usePalette(),
+    [step, setStep] = useState(0),
+    [run, setRun] = useState(1);
+  useEffect(() => {
+    setStep(0);
+    if (!paths.length) return;
+    const timer = setInterval(
+      () =>
+        setStep((current) => {
+          if (current >= paths.length) {
+            clearInterval(timer);
+            return current;
+          }
+          return current + 1;
+        }),
+      550,
+    );
+    return () => clearInterval(timer);
+  }, [paths, run]);
+  return (
+    <View style={{ alignItems: 'center', gap: 8 }}>
+      <View
+        style={{
+          width: '100%',
+          maxWidth: 280,
+          aspectRatio: 1,
+          borderWidth: 1,
+          borderColor: c.border,
+          borderRadius: 16,
+          backgroundColor: c.bg,
+          overflow: 'hidden',
+        }}
+      >
+        <Svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`}>
+          {paths.slice(0, step).map((d, i) => (
+            <Path
+              key={i}
+              d={d}
+              stroke={c.text}
+              strokeWidth={5}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ))}
+        </Svg>
+      </View>
+      <Button
+        small
+        variant="ghost"
+        label={s.t('repeat')}
+        icon="refresh-outline"
+        onPress={() => setRun((r) => r + 1)}
+      />
+    </View>
   );
 }
