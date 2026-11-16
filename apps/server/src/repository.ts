@@ -1,5 +1,21 @@
 import type { PrismaClient, Prisma } from '@prisma/client';
-import type { LearningEvent, Preferences } from '../../../packages/core/src';
+import type { LearningEvent, Preferences, SyncCursor } from '../../../packages/core/src';
+export type SyncResult = {
+  events: LearningEvent[];
+  conflicts: string[];
+  cursor: SyncCursor | null;
+};
+/** Key-sorted canonical JSON, so payload comparison survives JSONB key reordering. */
+export function canonical(value: unknown): string {
+  return Array.isArray(value)
+    ? `[${value.map(canonical).join(',')}]`
+    : value && typeof value === 'object'
+      ? `{${Object.entries(value)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([k, x]) => `${JSON.stringify(k)}:${canonical(x)}`)
+          .join(',')}}`
+      : JSON.stringify(value);
+}
 export type User = {
   id: string;
   email: string;
@@ -19,7 +35,8 @@ export interface Repository {
   deleteResets(id: string): Promise<void>;
   resetPassword(hash: string, passwordHash: string): Promise<boolean>;
   deleteUser(id: string): Promise<void>;
-  sync(id: string, events: LearningEvent[]): Promise<LearningEvent[]>;
+  pruneExpiredAuth(): Promise<void>;
+  sync(id: string, events: LearningEvent[], cursor?: SyncCursor | null): Promise<SyncResult>;
 }
 export function prismaRepository(db: PrismaClient): Repository {
   const user = (u: unknown) => u as User | null;
@@ -49,7 +66,14 @@ export function prismaRepository(db: PrismaClient): Repository {
         where: { tokenHash: hash },
         include: { user: true },
       });
-      return s && s.expiresAt > new Date() ? user(s.user) : null;
+      if (!s) return null;
+      if (s.expiresAt <= new Date()) {
+        // Lazy cleanup: an expired session row is deleted on first use
+        // after expiry instead of accumulating forever.
+        await db.session.deleteMany({ where: { tokenHash: hash } });
+        return null;
+      }
+      return user(s.user);
     },
     async revoke(hash) {
       await db.session.deleteMany({ where: { tokenHash: hash } });
@@ -79,7 +103,12 @@ export function prismaRepository(db: PrismaClient): Repository {
     async deleteUser(id) {
       await db.user.delete({ where: { id } });
     },
-    async sync(id, events) {
+    async pruneExpiredAuth() {
+      const now = new Date();
+      await db.session.deleteMany({ where: { expiresAt: { lte: now } } });
+      await db.passwordReset.deleteMany({ where: { expiresAt: { lte: now } } });
+    },
+    async sync(id, events, cursor) {
       return db.$transaction(async (tx) => {
         await tx.learningEvent.createMany({
           data: events.map((e) => ({
@@ -90,31 +119,57 @@ export function prismaRepository(db: PrismaClient): Repository {
           })),
           skipDuplicates: true,
         });
-        const all = await tx.learningEvent.findMany({
-          where: { userId: id },
-          orderBy: [{ occurredAt: 'asc' }, { eventId: 'asc' }],
-        });
-        const map = new Map(all.map((e) => [e.eventId, e.payload]));
+        // Conflict strategy (docs/SYNC.md): events are immutable and the
+        // first stored version wins. A re-uploaded ID whose payload
+        // differs is NOT an error and never blocks the rest of the
+        // batch; its stored version is returned so the client can
+        // repair its local copy, and the ID is listed in `conflicts`.
+        const stored = events.length
+          ? await tx.learningEvent.findMany({
+              where: { userId: id, eventId: { in: events.map((e) => e.id) } },
+            })
+          : [];
+        const storedById = new Map(stored.map((e) => [e.eventId, e.payload]));
+        const conflicts: string[] = [];
+        const conflictEvents: LearningEvent[] = [];
         for (const e of events) {
-          if (JSON.stringify(map.get(e.id)) !== JSON.stringify(JSON.parse(JSON.stringify(e)))) {
-            // JSONB property order is not stable: compare keys recursively through a canonical form.
-            const canonical = (v: unknown): string =>
-              Array.isArray(v)
-                ? `[${v.map(canonical).join(',')}]`
-                : v && typeof v === 'object'
-                  ? `{${Object.entries(v)
-                      .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([k, x]) => `${JSON.stringify(k)}:${canonical(x)}`)
-                      .join(',')}}`
-                  : JSON.stringify(v);
-            if (canonical(map.get(e.id)) !== canonical(e))
-              throw Object.assign(new Error('Event ID conflict'), {
-                status: 409,
-                code: 'EVENT_CONFLICT',
-              });
+          const existing = storedById.get(e.id);
+          if (existing !== undefined && canonical(existing) !== canonical(e)) {
+            conflicts.push(e.id);
+            conflictEvents.push(existing as unknown as LearningEvent);
           }
         }
-        return all.map((e) => e.payload as unknown as LearningEvent);
+        // Delta: only events after the client's cursor, in the server's
+        // deterministic (occurredAt, eventId) order. No cursor means
+        // "from the beginning" (first sync / older client).
+        const delta = await tx.learningEvent.findMany({
+          where: {
+            userId: id,
+            ...(cursor
+              ? {
+                  OR: [
+                    { occurredAt: { gt: new Date(cursor.at) } },
+                    { occurredAt: new Date(cursor.at), eventId: { gt: cursor.id } },
+                  ],
+                }
+              : {}),
+          },
+          orderBy: [{ occurredAt: 'asc' }, { eventId: 'asc' }],
+        });
+        const last = await tx.learningEvent.findFirst({
+          where: { userId: id },
+          orderBy: [{ occurredAt: 'desc' }, { eventId: 'desc' }],
+        });
+        const byId = new Map<string, LearningEvent>();
+        for (const e of delta) byId.set(e.eventId, e.payload as unknown as LearningEvent);
+        for (const e of conflictEvents) byId.set(e.id, e);
+        return {
+          events: [...byId.values()].sort(
+            (a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id),
+          ),
+          conflicts,
+          cursor: last ? { at: last.occurredAt.toISOString(), id: last.eventId } : (cursor ?? null),
+        };
       });
     },
   };

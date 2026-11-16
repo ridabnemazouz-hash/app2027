@@ -5,12 +5,14 @@ import {
   defaultPreferences,
   deriveProgress,
   mergeEvents,
+  mergeServerEvents,
   preferencesSchema,
   eventSchema,
   curriculumSchema,
   type Curriculum,
   type LearningEvent,
   type Locale,
+  type SyncCursor,
   type Localized,
   type Preferences,
 } from '../../../packages/core/src';
@@ -21,7 +23,13 @@ import { api, ApiError } from './api';
 export const content: Curriculum = curriculumSchema.parse(rawContent);
 export type MessageKey = keyof typeof messages.en;
 type User = { id: string; name: string; email: string; preferences: Preferences };
-type Snapshot = { events: LearningEvent[]; preferences: Preferences; pending: string[] };
+type Snapshot = {
+  events: LearningEvent[];
+  preferences: Preferences;
+  pending: string[];
+  /** Last server sync position (docs/SYNC.md); absent on old profiles. */
+  cursor?: SyncCursor | null;
+};
 type Store = {
   ready: boolean;
   error: string;
@@ -73,8 +81,9 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
           events: raw.events.map((e) => eventSchema.parse(e)),
           preferences: preferencesSchema.parse(raw.preferences),
           pending: raw.pending ?? [],
+          cursor: raw.cursor ?? null,
         }
-      : { events: [], preferences: prefs ?? defaultPreferences, pending: [] };
+      : { events: [], preferences: prefs ?? defaultPreferences, pending: [], cursor: null };
     ownerRef.current = owner;
     snapshot.current = loaded;
     setEvents(loaded.events);
@@ -111,21 +120,27 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     setSyncStatus('syncing');
     try {
       // Capture a batch, but preserve new local events added during the request.
+      // Delta protocol (docs/SYNC.md): send the stored cursor, receive
+      // only newer server events plus any conflicting stored versions.
+      // Conflicting local copies are replaced by the server's first
+      // stored version and leave the pending queue, so one bad event
+      // can no longer poison every future upload.
       let batch = snapshot.current.pending.slice(0, 500);
-      let incoming: LearningEvent[] = [];
       do {
         const sent = snapshot.current.events.filter((e) => batch.includes(e.id));
-        const response = await api<{ events: LearningEvent[] }>('/sync', { events: sent }, token);
-        incoming = mergeEvents(
-          incoming,
-          response.events.map((e) => eventSchema.parse(e)),
-        );
+        const response = await api<{
+          events: LearningEvent[];
+          conflicts: string[];
+          cursor: SyncCursor | null;
+        }>('/sync', { events: sent, cursor: snapshot.current.cursor ?? null }, token);
         if (owner !== ownerRef.current) return;
-        const sentIds = new Set(batch);
+        const serverEvents = response.events.map((e) => eventSchema.parse(e));
+        const resolved = new Set([...batch, ...response.conflicts]);
         await persist((current) => ({
           ...current,
-          events: mergeEvents(current.events, incoming),
-          pending: current.pending.filter((id) => !sentIds.has(id)),
+          events: mergeServerEvents(current.events, serverEvents, response.conflicts),
+          pending: current.pending.filter((id) => !resolved.has(id)),
+          cursor: response.cursor,
         }));
         batch = snapshot.current.pending.slice(0, 500);
       } while (batch.length);

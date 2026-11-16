@@ -150,10 +150,16 @@ export function createApp(
     res.json({ deleted: true });
   });
   app.post('/sync', requireUser, async (req, res) => {
-    const { events } = z.object({ events: z.array(eventSchema).max(500) }).parse(req.body);
+    const { events, cursor } = z
+      .object({
+        events: z.array(eventSchema).max(500),
+        cursor: z.object({ at: z.string().datetime(), id: z.string().uuid() }).nullish(),
+      })
+      .parse(req.body);
     if (events.some((e) => Date.parse(e.at) > Date.now() + 300000)) throw fail(400, 'FUTURE_EVENT');
-    const all = await repo.sync((res.locals.user as User).id, events);
-    res.json({ events: all });
+    // Response: delta after `cursor`, conflicting stored versions, and
+    // the new cursor. See docs/SYNC.md for the conflict strategy.
+    res.json(await repo.sync((res.locals.user as User).id, events, cursor ?? null));
   });
   app.post('/tutor', requireUser, tutorLimit, async (req, res) => {
     const { message, locale, level } = z

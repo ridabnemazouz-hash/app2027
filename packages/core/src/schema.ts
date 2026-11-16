@@ -194,16 +194,40 @@ export const eventSchema = z
       'reading',
       'writing',
       'reset',
+      'exam',
     ]),
     itemId: z.string().max(100),
     correct: z.boolean().optional(),
     quality: z.number().int().min(0).max(5).optional(),
     value: z.boolean().optional(),
-    skill: z.string().max(30).optional(),
+    // Closed set: the six exercise skills plus 'self' for self-assessed
+    // recall. Arbitrary strings would create meaningless progress buckets.
+    skill: z
+      .enum(['vocabulary', 'grammar', 'reading', 'listening', 'speaking', 'writing', 'self'])
+      .optional(),
     seconds: z.number().int().min(0).max(3600).optional(),
+    // Practice-exam attempts only: HanziGo 300-point total and its
+    // per-section points (listening/reading/grammar, 100 each).
+    score: z.number().min(0).max(300).optional(),
+    sections: z
+      .object({
+        listening: z.number().min(0).max(100),
+        reading: z.number().min(0).max(100),
+        grammar: z.number().min(0).max(100),
+      })
+      .optional(),
   })
   .superRefine((e, ctx) => {
     if (e.type === 'answer' && (e.correct === undefined || e.quality === undefined))
       ctx.addIssue({ code: 'custom', message: 'Answers require correct and quality' });
+    if (e.type === 'exam' && (e.score === undefined || e.sections === undefined))
+      ctx.addIssue({ code: 'custom', message: 'Exam attempts require score and sections' });
+    if (
+      e.type === 'exam' &&
+      e.score !== undefined &&
+      e.sections !== undefined &&
+      Math.abs(e.score - (e.sections.listening + e.sections.reading + e.sections.grammar)) > 0.51
+    )
+      ctx.addIssue({ code: 'custom', message: 'Exam score must equal the sum of its sections' });
   });
 export type LearningEvent = z.infer<typeof eventSchema>;

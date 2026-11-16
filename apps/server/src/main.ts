@@ -12,12 +12,19 @@ const trustProxy = process.env.TRUST_PROXY
       ? true
       : process.env.TRUST_PROXY
   : undefined;
-const app = createApp(prismaRepository(db), {
+const repo = prismaRepository(db);
+const app = createApp(repo, {
   origins: (process.env.CORS_ORIGINS ?? 'http://localhost:8081,http://127.0.0.1:8081').split(','),
   email: emailProvider(process.env),
   tutor: tutorProvider(process.env),
   trustProxy,
 });
+void repo.pruneExpiredAuth().catch(() => undefined);
+const pruneTimer = setInterval(
+  () => void repo.pruneExpiredAuth().catch(() => undefined),
+  6 * 3600 * 1000,
+);
+pruneTimer.unref();
 const server = app.listen(Number(process.env.PORT ?? 4000), () =>
   console.log('HanziGo API listening'),
 );

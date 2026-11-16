@@ -5,7 +5,8 @@ import request from 'supertest';
 import type { LearningEvent, Preferences } from '../../../packages/core/src';
 import { createApp } from '../src/app';
 import { hashPassword, verifyPassword } from '../src/security';
-import type { Repository, User } from '../src/repository';
+import { canonical, type Repository, type SyncResult, type User } from '../src/repository';
+import type { SyncCursor } from '../../../packages/core/src';
 /** Test adapter only. Production always uses PostgreSQL through prismaRepository. */
 class MemoryRepo implements Repository {
   users = new Map<string, User>();
@@ -32,7 +33,12 @@ class MemoryRepo implements Repository {
   }
   async session(hash: string) {
     const s = this.sessions.get(hash);
-    return s && s.expires > new Date() ? (this.users.get(s.id) ?? null) : null;
+    if (!s) return null;
+    if (s.expires <= new Date()) {
+      this.sessions.delete(hash);
+      return null;
+    }
+    return this.users.get(s.id) ?? null;
   }
   async revoke(hash: string) {
     this.sessions.delete(hash);
@@ -58,16 +64,42 @@ class MemoryRepo implements Repository {
     this.events.delete(id);
     for (const [k, s] of this.sessions) if (s.id === id) this.sessions.delete(k);
   }
-  async sync(id: string, events: LearningEvent[]) {
+  async pruneExpiredAuth() {
+    const now = new Date();
+    for (const [k, s] of this.sessions) if (s.expires <= now) this.sessions.delete(k);
+    for (const [k, r] of this.resets) if (r.expires <= now) this.resets.delete(k);
+  }
+  async sync(id: string, events: LearningEvent[], cursor?: SyncCursor | null): Promise<SyncResult> {
+    // Same contract as prismaRepository (docs/SYNC.md): first stored
+    // version wins, conflicts are reported (never thrown), and the
+    // response is the delta after the client's cursor.
     const map = new Map((this.events.get(id) ?? []).map((e) => [e.id, e]));
+    const conflicts: string[] = [];
+    const conflictEvents: LearningEvent[] = [];
     for (const e of events) {
-      if (map.has(e.id) && JSON.stringify(map.get(e.id)) !== JSON.stringify(e))
-        throw Object.assign(new Error('conflict'), { status: 409, code: 'EVENT_CONFLICT' });
-      map.set(e.id, e);
+      const existing = map.get(e.id);
+      if (existing && canonical(existing) !== canonical(e)) {
+        conflicts.push(e.id);
+        conflictEvents.push(existing);
+      } else if (!existing) map.set(e.id, e);
     }
-    const list = [...map.values()];
-    this.events.set(id, list);
-    return list;
+    const all = [...map.values()].sort(
+      (x, y) => x.at.localeCompare(y.at) || x.id.localeCompare(y.id),
+    );
+    this.events.set(id, all);
+    const delta = cursor
+      ? all.filter((e) => e.at > cursor.at || (e.at === cursor.at && e.id > cursor.id))
+      : all;
+    const byId = new Map(delta.map((e) => [e.id, e]));
+    for (const e of conflictEvents) byId.set(e.id, e);
+    const last = all[all.length - 1];
+    return {
+      events: [...byId.values()].sort(
+        (x, y) => x.at.localeCompare(y.at) || x.id.localeCompare(y.id),
+      ),
+      conflicts,
+      cursor: last ? { at: last.at, id: last.id } : (cursor ?? null),
+    };
   }
 }
 const register = (app: ReturnType<typeof createApp>, email = 'learner@example.com') =>
@@ -125,7 +157,7 @@ test('validation, duplicate registration and incorrect login produce specific er
     .send({ email: 'learner@example.com', password: 'A-long-test-password-123' })
     .expect(200);
 });
-test('sync is idempotent, isolated by user, validates payloads and rejects changed event IDs', async () => {
+test('sync is idempotent, isolated by user, validates payloads and reports changed event IDs as conflicts', async () => {
   const app = createApp(new MemoryRepo());
   const a = (await register(app, 'a@example.com')).body.token as string,
     b = (await register(app, 'b@example.com')).body.token as string;
@@ -151,11 +183,15 @@ test('sync is idempotent, isolated by user, validates payloads and rejects chang
     .send({ events: [] })
     .expect(200);
   assert.deepEqual(empty.body.events, []);
-  await request(app)
+  // Changed payload for a stored ID: first stored version wins, the
+  // conflict is reported with the stored copy, and the batch succeeds.
+  const conflict = await request(app)
     .post('/sync')
     .auth(a, { type: 'bearer' })
     .send({ events: [{ ...e, correct: true }] })
-    .expect(409);
+    .expect(200);
+  assert.deepEqual(conflict.body.conflicts, [e.id]);
+  assert.equal(conflict.body.events.find((x: LearningEvent) => x.id === e.id)?.correct, false);
   await request(app)
     .post('/sync')
     .auth(a, { type: 'bearer' })
@@ -289,4 +325,116 @@ test('a second reset request replaces the first token', async () => {
     .post('/auth/reset')
     .send({ token: delivered[1], password: 'new-password-1234' })
     .expect(200);
+});
+test('delta sync returns only events after the cursor and a stable new cursor', async () => {
+  const app = createApp(new MemoryRepo());
+  const a = (await register(app, 'delta@example.com')).body.token as string;
+  const mk = (at: string): LearningEvent => ({
+    id: randomUUID(),
+    at,
+    type: 'answer',
+    itemId: 'v1',
+    correct: true,
+    quality: 4,
+  });
+  const e1 = mk('2026-01-01T10:00:00.000Z'),
+    e2 = mk('2026-01-01T11:00:00.000Z'),
+    e3 = mk('2026-01-01T12:00:00.000Z');
+  const first = await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [e1, e2] })
+    .expect(200);
+  assert.equal(first.body.events.length, 2);
+  assert.deepEqual(first.body.cursor, { at: e2.at, id: e2.id });
+  const second = await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [e3], cursor: first.body.cursor })
+    .expect(200);
+  assert.deepEqual(
+    second.body.events.map((x: LearningEvent) => x.id),
+    [e3.id],
+  );
+  const third = await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [], cursor: second.body.cursor })
+    .expect(200);
+  assert.deepEqual(third.body.events, []);
+  assert.deepEqual(third.body.cursor, { at: e3.at, id: e3.id });
+});
+test('a conflicting event does not poison the rest of its batch', async () => {
+  const app = createApp(new MemoryRepo());
+  const a = (await register(app, 'poison@example.com')).body.token as string;
+  const original: LearningEvent = {
+    id: randomUUID(),
+    at: '2026-01-01T10:00:00.000Z',
+    type: 'answer',
+    itemId: 'v1',
+    correct: false,
+    quality: 1,
+  };
+  await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [original] })
+    .expect(200);
+  const fresh: LearningEvent = {
+    id: randomUUID(),
+    at: '2026-01-01T11:00:00.000Z',
+    type: 'lesson',
+    itemId: 'lesson-1-1',
+  };
+  const res = await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [{ ...original, correct: true }, fresh] })
+    .expect(200);
+  assert.deepEqual(res.body.conflicts, [original.id]);
+  const stored = await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({ events: [] })
+    .expect(200);
+  assert.equal(stored.body.events.length, 2);
+  assert.equal(stored.body.events.find((x: LearningEvent) => x.id === fresh.id)?.type, 'lesson');
+});
+test('expired sessions are rejected and removed; prune clears expired auth rows', async () => {
+  const repo = new MemoryRepo();
+  const app = createApp(repo);
+  const token = (await register(app, 'expiry@example.com')).body.token as string;
+  const hash = [...repo.sessions.keys()][0]!;
+  repo.sessions.set(hash, {
+    id: [...repo.users.values()][0]!.id,
+    expires: new Date(Date.now() - 1000),
+  });
+  await request(app).get('/me').auth(token, { type: 'bearer' }).expect(401);
+  assert.equal(repo.sessions.has(hash), false);
+  repo.sessions.set('stale', { id: 'x', expires: new Date(Date.now() - 1000) });
+  repo.resets.set('stale', { id: 'x', expires: new Date(Date.now() - 1000) });
+  await repo.pruneExpiredAuth();
+  assert.equal(repo.sessions.size, 0);
+  assert.equal(repo.resets.size, 0);
+});
+test('events with an unknown skill are rejected', async () => {
+  const app = createApp(new MemoryRepo());
+  const a = (await register(app, 'skill@example.com')).body.token as string;
+  await request(app)
+    .post('/sync')
+    .auth(a, { type: 'bearer' })
+    .send({
+      events: [
+        {
+          id: randomUUID(),
+          at: new Date().toISOString(),
+          type: 'answer',
+          itemId: 'v1',
+          correct: true,
+          quality: 3,
+          skill: 'made-up-skill',
+        },
+      ],
+    })
+    .expect(400);
 });

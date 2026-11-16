@@ -5,6 +5,7 @@ import {
   deriveProgress,
   checkAnswer,
   mergeEvents,
+  mergeServerEvents,
   streak,
   type LearningEvent,
   type Exercise,
@@ -104,4 +105,32 @@ test('streak includes yesterday when today has no activity, stops at a gap', () 
   assert.equal(streak({ '2026-10-26': 60, '2026-10-27': 60 }, new Date(at)), 2);
   assert.equal(streak({ '2026-10-26': 60 }, new Date(at)), 0);
   assert.equal(streak({}, new Date(at)), 0);
+});
+test('mergeServerEvents replaces conflicting local copies with the stored server copy', () => {
+  const local = [event('a', { correct: true }), event('b')];
+  const stored = event('a', { correct: false });
+  const merged = mergeServerEvents(local, [stored], ['a']);
+  assert.equal(merged.find((e) => e.id === 'a')?.correct, false);
+  assert.equal(merged.length, 2);
+});
+test('mergeServerEvents adds new server events and never drops unseen local history', () => {
+  const local = [event('local-only')];
+  const merged = mergeServerEvents(local, [event('from-server')]);
+  assert.deepEqual(merged.map((e) => e.id).sort(), ['from-server', 'local-only']);
+  // Without a conflict report, a differing server copy does not overwrite.
+  const kept = mergeServerEvents([event('a', { correct: true })], [event('a', { correct: false })]);
+  assert.equal(kept[0]?.correct, true);
+});
+test('exam attempts are derived with score and section breakdown', () => {
+  const p = deriveProgress([
+    event('x', {
+      type: 'exam',
+      itemId: 'exam-hsk1',
+      score: 210,
+      sections: { listening: 80, reading: 70, grammar: 60 },
+    }),
+  ]);
+  assert.equal(p.exams.length, 1);
+  assert.equal(p.exams[0]?.score, 210);
+  assert.equal(p.exams[0]?.sections.listening, 80);
 });

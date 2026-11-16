@@ -65,8 +65,32 @@ export function checkAnswer(exercise: Exercise, answer: string): boolean {
 }
 export function mergeEvents(local: LearningEvent[], remote: LearningEvent[]): LearningEvent[] {
   const map = new Map<string, LearningEvent>();
-  // Existing immutable event wins; backend rejects ID reuse with changed payload.
+  // Existing immutable event wins locally; the server is the authority
+  // when copies disagree (see mergeServerEvents and docs/SYNC.md).
   for (const e of [...local, ...remote]) if (!map.has(e.id)) map.set(e.id, e);
+  return [...map.values()].sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
+}
+/** Position in the server's deterministic event ordering (at, then id). */
+export type SyncCursor = { at: string; id: string };
+/**
+ * Apply a server sync response to local events. Strategy (docs/SYNC.md):
+ * events are immutable and the first version the server stored wins.
+ * For IDs the server reports as conflicts, the local copy is replaced
+ * by the stored server copy; every other server event is added if new.
+ * Nothing else is removed, so a sync can never silently drop local
+ * history that the server has not seen.
+ */
+export function mergeServerEvents(
+  local: LearningEvent[],
+  serverEvents: LearningEvent[],
+  conflictIds: readonly string[] = [],
+): LearningEvent[] {
+  const conflicts = new Set(conflictIds);
+  const map = new Map<string, LearningEvent>();
+  for (const e of local) map.set(e.id, e);
+  for (const e of serverEvents) {
+    if (!map.has(e.id) || conflicts.has(e.id)) map.set(e.id, e);
+  }
   return [...map.values()].sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
 }
 export function deriveProgress(events: LearningEvent[]) {
@@ -81,6 +105,13 @@ export function deriveProgress(events: LearningEvent[]) {
   let correct = 0,
     total = 0;
   let writings = 0;
+  const exams: {
+    id: string;
+    at: string;
+    itemId: string;
+    score: number;
+    sections: { listening: number; reading: number; grammar: number };
+  }[] = [];
   const ordered = mergeEvents(events, []);
   let resetIndex = -1;
   for (let i = ordered.length - 1; i >= 0; i--) {
@@ -106,6 +137,8 @@ export function deriveProgress(events: LearningEvent[]) {
     if (e.type === 'lesson') lessons.add(e.itemId);
     if (e.type === 'reading') readings.add(e.itemId);
     if (e.type === 'writing') writings++;
+    if (e.type === 'exam' && e.score !== undefined && e.sections)
+      exams.push({ id: e.id, at: e.at, itemId: e.itemId, score: e.score, sections: e.sections });
     for (const [type, set] of [
       ['favorite', favorites],
       ['learned', learned],
@@ -128,6 +161,7 @@ export function deriveProgress(events: LearningEvent[]) {
     correct,
     total,
     writings,
+    exams,
   };
 }
 export const defaultPreferences: Preferences = {
