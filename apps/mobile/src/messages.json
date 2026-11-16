@@ -334,7 +334,11 @@
     "matching": "Matching",
     "matchHint": "Tap a Chinese word, then tap its meaning.",
     "nextRound": "Next round",
-    "firstTry": "pairs matched on the first try"
+    "firstTry": "pairs matched on the first try",
+    "whatMeans": "What does this mean?",
+    "transcript": "Transcript",
+    "listeningDone": "Listening session complete",
+    "listeningLabNote": "Sentences from your level's words and readings. Audio is your device's voice unless a recording is supplied."
   },
   "zh": {
     "home": "今天",
@@ -671,7 +675,11 @@
     "matching": "配对",
     "matchHint": "点一个中文词，再点它的意思。",
     "nextRound": "下一轮",
-    "firstTry": "个词对一次配对成功"
+    "firstTry": "个词对一次配对成功",
+    "whatMeans": "这是什么意思？",
+    "transcript": "原文",
+    "listeningDone": "听力练习完成",
+    "listeningLabNote": "句子来自你所在等级的词汇和阅读。除非提供录音，否则音频为设备语音。"
   },
   "ar": {
     "home": "اليوم",
@@ -1008,7 +1016,11 @@
     "matching": "المطابقة",
     "matchHint": "اضغط على كلمة صينية، ثم اضغط على معناها.",
     "nextRound": "الجولة التالية",
-    "firstTry": "أزواج تمت مطابقتها من أول محاولة"
+    "firstTry": "أزواج تمت مطابقتها من أول محاولة",
+    "whatMeans": "ما معنى هذا؟",
+    "transcript": "النص",
+    "listeningDone": "اكتملت جلسة الاستماع",
+    "listeningLabNote": "جمل من كلمات وقراءات مستواك. الصوت هو صوت جهازك ما لم يتم توفير تسجيل."
   },
   "es": {
     "home": "Hoy",
@@ -1345,6 +1357,10 @@
     "matching": "Emparejar",
     "matchHint": "Toca una palabra china y luego toca su significado.",
     "nextRound": "Siguiente ronda",
-    "firstTry": "parejas acertadas al primer intento"
+    "firstTry": "parejas acertadas al primer intento",
+    "whatMeans": "¿Qué significa esto?",
+    "transcript": "Transcripción",
+    "listeningDone": "Sesión de escucha completada",
+    "listeningLabNote": "Frases de las palabras y lecturas de tu nivel. El audio es la voz de tu dispositivo salvo que se proporcione una grabación."
   }
 }

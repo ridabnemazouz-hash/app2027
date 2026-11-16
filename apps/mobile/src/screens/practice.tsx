@@ -183,6 +183,8 @@ export function PracticeScreen() {
           </>
         ) : mode === 'matching' ? (
           <MatchingGame key={`${s.preferences.targetLevel}-${s.owner}`} />
+        ) : mode === 'listening' ? (
+          <ListeningLab key={`${s.preferences.targetLevel}-${s.owner}`} />
         ) : mode === 'assessment' ? (
           <>
             <Txt size={12} color={c.muted}>
@@ -244,7 +246,7 @@ export function PracticeScreen() {
         ) : (
           <>
             <Row style={{ justifyContent: 'space-between' }}>
-              <Badge>{mode === 'listening' ? s.t('listenOnly') : s.t('reviewMode')}</Badge>
+              <Badge>{s.t('reviewMode')}</Badge>
               <Txt size={12} color={c.muted}>
                 {index + 1} / {ids.length}
               </Txt>
@@ -271,28 +273,18 @@ export function PracticeScreen() {
             <Meter value={index / ids.length} />
             <Card style={{ alignItems: 'center', padding: 30, minHeight: 350, gap: 25 }}>
               <Txt size={12} color={c.muted}>
-                {s.t(mode === 'listening' ? 'pronunciation' : 'testRecall')}
+                {s.t('testRecall')}
               </Txt>
-              {mode !== 'listening' || revealed ? (
-                <>
-                  <Txt mandarin serif size={v ? 55 : 30} style={{ textAlign: 'center' }}>
-                    {text}
+              <>
+                <Txt mandarin serif size={v ? 55 : 30} style={{ textAlign: 'center' }}>
+                  {text}
+                </Txt>
+                {v ? (
+                  <Txt mandarin size={18} color={c.red}>
+                    {v.pinyin}
                   </Txt>
-                  {v ? (
-                    <Txt mandarin size={18} color={c.red}>
-                      {v.pinyin}
-                    </Txt>
-                  ) : null}
-                </>
-              ) : null}
-              {mode === 'listening' ? (
-                <View style={{ width: '100%' }}>
-                  <Pronunciation text={text} audio={v?.audio ?? g?.audio} />
-                  <Txt size={11} color={c.muted}>
-                    {s.t('noScoring')}
-                  </Txt>
-                </View>
-              ) : null}
+                ) : null}
+              </>
               {revealed ? (
                 <>
                   <Txt size={22} style={{ textAlign: 'center' }}>
@@ -361,11 +353,6 @@ export function PracticeScreen() {
                 />
               )}
             </Card>
-            {mode === 'listening' ? (
-              <Txt size={11} color={c.muted}>
-                {s.t('soundPractice')} {s.t('listeningUnavailable')}
-              </Txt>
-            ) : null}
           </>
         )}
         {error ? <Txt color={c.red}>{s.t('saveError')}</Txt> : null}
@@ -513,6 +500,157 @@ function MatchingGame() {
             label={s.t('nextRound')}
             icon="arrow-forward"
             onPress={() => setRound(round + 1)}
+          />
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+/**
+ * Listening Lab: level-appropriate sentences (the target level's
+ * vocabulary examples and reading paragraphs) played through the
+ * Pronunciation component — recorded audio when a licensed URL exists,
+ * otherwise the clearly labelled device voice. Each item asks a
+ * meaning question; the transcript is revealed only after answering.
+ * Answers are recorded as ordinary 'listening' skill events.
+ */
+function ListeningLab() {
+  const s = useLearning(),
+    c = usePalette(),
+    [index, setIndex] = useState(0),
+    [chosen, setChosen] = useState<string | null>(null),
+    [score, setScore] = useState(0),
+    started = useRef(Date.now());
+  const level = s.preferences.targetLevel;
+  const items = [
+    ...content.vocabulary
+      .filter((v) => v.level === level)
+      .map((v) => ({
+        itemId: v.id,
+        chinese: v.examples[0]!.chinese,
+        pinyin: v.examples[0]!.pinyin,
+        translation: s.localize(v.examples[0]!.translation),
+        audio: v.examples[0]!.audio,
+      })),
+    ...content.readings
+      .filter((r) => r.level === level)
+      .flatMap((r) =>
+        r.paragraphs.map((p) => ({
+          itemId: r.id,
+          chinese: p.chinese,
+          pinyin: p.pinyin,
+          translation: s.localize(p.translation),
+          audio: p.audio,
+        })),
+      ),
+  ];
+  const item = items[index];
+  if (!item)
+    return (
+      <Empty
+        title={s.t('listeningDone')}
+        subtitle={`${score} / ${items.length} · ${s.t('correctOf')}`}
+        action={
+          <Button
+            label={s.t('restart')}
+            onPress={() => {
+              setIndex(0);
+              setScore(0);
+              setChosen(null);
+              started.current = Date.now();
+            }}
+          />
+        }
+      />
+    );
+  const options = [0, 1, 2, 3].map(
+    (k) => items[(index + [0, 1, 3, 5][k]!) % items.length]!.translation,
+  );
+  const rotated = options.map((_, k) => options[(k + index) % options.length]!);
+  async function choose(option: string) {
+    if (chosen || !item) return;
+    const correct = option === item.translation;
+    setChosen(option);
+    if (correct) setScore((x) => x + 1);
+    await s
+      .record({
+        type: 'answer',
+        itemId: item.itemId,
+        correct,
+        quality: correct ? 4 : 1,
+        skill: 'listening',
+        seconds: Math.min(120, Math.max(1, Math.round((Date.now() - started.current) / 1000))),
+      })
+      .catch(() => undefined);
+  }
+  return (
+    <Card style={{ gap: 16 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Badge>
+          HSK {level} · {s.t('listening')}
+        </Badge>
+        <Txt size={12} color={c.muted}>
+          {index + 1} / {items.length}
+        </Txt>
+      </Row>
+      <Txt size={11} color={c.muted}>
+        {s.t('listeningLabNote')}
+      </Txt>
+      <Meter value={items.length ? index / items.length : 0} />
+      <Pronunciation text={item.chinese} audio={item.audio} />
+      <Txt weight="600">{s.t('whatMeans')}</Txt>
+      <View style={{ gap: 10 }}>
+        {rotated.map((option, i) => {
+          const isAnswer = option === item.translation;
+          const state = !chosen
+            ? 'idle'
+            : isAnswer
+              ? 'right'
+              : option === chosen
+                ? 'wrong'
+                : 'idle';
+          return (
+            <Pressable
+              key={i}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: chosen === option, disabled: !!chosen }}
+              disabled={!!chosen}
+              onPress={() => void choose(option)}
+              style={{
+                padding: 14,
+                borderRadius: 12,
+                borderWidth: 1.5,
+                borderColor: state === 'right' ? c.green : state === 'wrong' ? c.red : c.border,
+                backgroundColor: state === 'right' ? c.soft : undefined,
+              }}
+            >
+              <Txt>{option}</Txt>
+            </Pressable>
+          );
+        })}
+      </View>
+      {chosen ? (
+        <View style={{ gap: 8, padding: 16, borderRadius: 12, backgroundColor: c.soft }}>
+          <Txt weight="600">{s.t(chosen === item.translation ? 'correct' : 'incorrect')}</Txt>
+          <Txt size={11} color={c.muted}>
+            {s.t('transcript')}
+          </Txt>
+          <Txt mandarin size={19}>
+            {item.chinese}
+          </Txt>
+          <Txt mandarin color={c.muted}>
+            {item.pinyin}
+          </Txt>
+          <Txt>{item.translation}</Txt>
+          <Button
+            label={s.t('next')}
+            icon="arrow-forward"
+            onPress={() => {
+              setIndex(index + 1);
+              setChosen(null);
+              started.current = Date.now();
+            }}
           />
         </View>
       ) : null}
