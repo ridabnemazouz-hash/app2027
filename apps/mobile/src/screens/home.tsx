@@ -39,7 +39,12 @@ export function HomeScreen() {
   const today = new Date().toISOString().slice(0, 10);
   const minutes = Math.floor((s.progress.activity[today] ?? 0) / 60);
   const currentStreak = streak(s.progress.activity);
-  const word = content.vocabulary.find((v) => v.level === s.preferences.targetLevel)!;
+  // Word of the day rotates deterministically by UTC day across the
+  // target level's supplementary words, so it actually changes daily
+  // and is the same on every device for a given day.
+  const levelWords = content.vocabulary.filter((v) => v.level === s.preferences.targetLevel);
+  const dayNumber = Math.floor(Date.now() / 86400000);
+  const word = levelWords[dayNumber % levelWords.length]!;
   const recent = Object.entries(s.progress.reviews)
     .sort(([, a], [, b]) => b.lastReview.localeCompare(a.lastReview))
     .slice(0, 4);
@@ -245,6 +250,18 @@ export function HomeScreen() {
                 icon: 'book-outline' as const,
                 path: '/library',
                 note: s.t('librarySub'),
+              },
+              {
+                key: 'listening' as const,
+                icon: 'volume-medium-outline' as const,
+                path: '/practice?mode=listening',
+                note: s.t('listenOnly'),
+              },
+              {
+                key: 'tutor' as const,
+                icon: 'chatbubble-ellipses-outline' as const,
+                path: '/tutor',
+                note: s.t('tutorNote'),
               },
             ].map((x) => (
               <Pressable
