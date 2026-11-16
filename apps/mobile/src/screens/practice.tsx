@@ -28,6 +28,7 @@ import {
 } from 'expo-audio';
 import { File } from 'expo-file-system';
 import { findWord, lexicon, missingTranslation, wordMeaning } from '../lexicon';
+import { characterStory } from '../character-stories';
 import { Pronunciation } from '../audio';
 import { Drawing } from '../drawing';
 import { ExercisePlayer } from '../exercise';
@@ -184,6 +185,7 @@ export function PracticeScreen() {
                 />
               ))}
             </View>
+            <CharacterStoryCard key={character.id} character={character} />
             <Card>
               <Badge>{s.t('selfAssessment')}</Badge>
               <Row style={{ justifyContent: 'space-between' }}>
@@ -234,6 +236,7 @@ export function PracticeScreen() {
                 {s.t('strokeUnavailable')}
               </Txt>
             </Card>
+            <SimilarCharacters key={s.owner} />
             <Card>
               <Txt weight="600">
                 {s.t('writingHistory')}: {s.progress.writings}
@@ -1006,5 +1009,378 @@ function ReplayDrawing({ paths, size }: { paths: string[]; size: number }) {
         onPress={() => setRun((r) => r + 1)}
       />
     </View>
+  );
+}
+
+type CharacterItem = (typeof content.characters)[number];
+
+/** Seal-inspired 汉 mark used as the character studio's visual anchor. */
+function SealMark() {
+  const c = usePalette();
+  return (
+    <View
+      accessible={false}
+      style={{
+        width: 46,
+        height: 46,
+        borderRadius: 10,
+        backgroundColor: c.red,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Txt mandarin serif size={25} color="#fff">
+        汉
+      </Txt>
+    </View>
+  );
+}
+
+function ComponentTile({
+  text,
+  caption,
+  accent,
+  muted,
+}: {
+  text: string;
+  caption?: string;
+  accent?: boolean;
+  muted?: boolean;
+}) {
+  const c = usePalette();
+  return (
+    <View
+      style={{
+        minWidth: 62,
+        minHeight: 62,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        borderColor: accent ? c.red : c.border,
+        backgroundColor: accent ? c.soft : undefined,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+        opacity: muted ? 0.4 : 1,
+      }}
+    >
+      <Txt mandarin serif size={28}>
+        {text}
+      </Txt>
+      {caption ? (
+        <Txt size={9} color={c.muted} style={{ textAlign: 'center' }}>
+          {caption}
+        </Txt>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * Character story card: the visual anchor of the character studio.
+ * Components are shown as separate tiles that assemble into the full
+ * character, followed by an original mnemonic story. Everything here
+ * is labelled as a learning aid — the pack's radical and stroke data
+ * are unverified (null in the data) and are not presented as fact.
+ */
+function CharacterStoryCard({ character }: { character: CharacterItem }) {
+  const s = useLearning(),
+    c = usePalette(),
+    [showBuild, setShowBuild] = useState(false);
+  const story = characterStory(character.id);
+  if (!story) return null;
+  return (
+    <Card style={{ gap: 16, padding: 24 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Row style={{ gap: 12 }}>
+          <SealMark />
+          <View>
+            <Txt weight="700">{s.t('components')}</Txt>
+            <Txt size={11} color={c.muted}>
+              HSK {character.level}
+            </Txt>
+          </View>
+        </Row>
+        <Badge>{s.t('storyAid')}</Badge>
+      </Row>
+      <Row style={{ gap: 16 }}>
+        <Txt mandarin serif size={58}>
+          {character.character}
+        </Txt>
+        <View style={{ gap: 3 }}>
+          <Txt mandarin size={17} color={c.red}>
+            {character.pinyin}
+          </Txt>
+          <Txt size={13} color={c.muted}>
+            {s.localize(character.meaning)}
+          </Txt>
+        </View>
+      </Row>
+      <View style={[styles.wrap, { alignItems: 'center', direction: 'ltr' }]}>
+        {story.components.map((comp, i) => (
+          <React.Fragment key={i}>
+            {i > 0 ? (
+              <Txt size={18} color={c.muted}>
+                +
+              </Txt>
+            ) : null}
+            <ComponentTile text={comp.text} caption={s.localize(comp.meaning)} />
+          </React.Fragment>
+        ))}
+        <Txt size={18} color={c.muted}>
+          →
+        </Txt>
+        <ComponentTile text={character.character} accent />
+      </View>
+      <Txt size={14} style={{ lineHeight: 22 }}>
+        {s.localize(story.story)}
+      </Txt>
+      <Txt size={11} color={c.muted}>
+        {s.t('componentsNote')}
+      </Txt>
+      {showBuild ? (
+        <BuildCharacter key={character.id} character={character} />
+      ) : (
+        <Button
+          label={s.t('buildCharacter')}
+          icon="brush-outline"
+          variant="secondary"
+          onPress={() => setShowBuild(true)}
+        />
+      )}
+    </Card>
+  );
+}
+
+/**
+ * Build the character: tap the components in order to assemble the
+ * character. Completion records one ordinary answer event; it counts
+ * as correct only when assembled without a wrong tap (first-try
+ * accuracy, like Matching).
+ */
+function BuildCharacter({ character }: { character: CharacterItem }) {
+  const s = useLearning(),
+    c = usePalette(),
+    [attempt, setAttempt] = useState(0),
+    [placed, setPlaced] = useState(0),
+    [mistake, setMistake] = useState(false),
+    [wrongTile, setWrongTile] = useState<number | null>(null),
+    [recorded, setRecorded] = useState(false),
+    started = useRef(Date.now());
+  const story = characterStory(character.id);
+  useEffect(() => {
+    setPlaced(0);
+    setMistake(false);
+    setWrongTile(null);
+    setRecorded(false);
+    started.current = Date.now();
+  }, [attempt, character.id]);
+  if (!story) return null;
+  const components = story.components;
+  const done = placed >= components.length;
+  // Deterministic shuffle: rotate by level + attempt.
+  const shift = components.length > 1 ? (character.level + attempt) % components.length || 1 : 0;
+  const tiles = components.map((comp, i) => ({
+    comp,
+    originalIndex: i,
+    displayIndex: (i + shift) % components.length,
+  }));
+  const displayTiles = [...tiles].sort((a, b) => a.displayIndex - b.displayIndex);
+  async function tap(originalIndex: number) {
+    if (done) return;
+    if (originalIndex === placed) {
+      const next = placed + 1;
+      setPlaced(next);
+      setWrongTile(null);
+      if (next === components.length && !recorded) {
+        setRecorded(true);
+        await s
+          .record({
+            type: 'answer',
+            itemId: character.id,
+            correct: !mistake,
+            quality: mistake ? 1 : 4,
+            skill: 'writing',
+            seconds: Math.min(120, Math.max(1, Math.round((Date.now() - started.current) / 1000))),
+          })
+          .catch(() => undefined);
+      }
+    } else {
+      setMistake(true);
+      setWrongTile(originalIndex);
+    }
+  }
+  return (
+    <View style={{ gap: 12, paddingTop: 6 }}>
+      <Txt weight="600">{s.t('buildCharacter')}</Txt>
+      <Txt size={12} color={c.muted}>
+        {s.t('buildHint')}
+      </Txt>
+      <View style={[styles.wrap, { direction: 'ltr' }]}>
+        {components.map((comp, i) => (
+          <ComponentTile
+            key={i}
+            text={i < placed ? comp.text : '·'}
+            accent={i < placed}
+            muted={i >= placed}
+          />
+        ))}
+      </View>
+      {done ? (
+        <Row style={{ gap: 14 }}>
+          <Txt mandarin serif size={46}>
+            {character.character}
+          </Txt>
+          <Txt weight="600" color={mistake ? c.red : c.green}>
+            {s.t(mistake ? 'incorrect' : 'correct')}
+          </Txt>
+          <Button
+            small
+            label={s.t('again')}
+            variant="secondary"
+            onPress={() => setAttempt(attempt + 1)}
+          />
+        </Row>
+      ) : (
+        <View style={[styles.wrap, { direction: 'ltr' }]}>
+          {displayTiles.map(({ comp, originalIndex }) => {
+            const used = originalIndex < placed;
+            return (
+              <Pressable
+                key={originalIndex}
+                accessibilityRole="button"
+                accessibilityLabel={comp.text}
+                accessibilityState={{ disabled: used }}
+                disabled={used}
+                onPress={() => void tap(originalIndex)}
+                style={{
+                  minWidth: 56,
+                  minHeight: 56,
+                  paddingHorizontal: 12,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: wrongTile === originalIndex ? c.red : c.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: used ? 0.3 : 1,
+                }}
+              >
+                <Txt mandarin serif size={26}>
+                  {comp.text}
+                </Txt>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/**
+ * Similar-character discrimination using only shipped data: each
+ * round shows one of the nine pack characters and four supplementary
+ * words; exactly one word contains the character. Solving records an
+ * ordinary vocabulary answer event with first-try accuracy.
+ */
+function SimilarCharacters() {
+  const s = useLearning(),
+    c = usePalette(),
+    [round, setRound] = useState(0),
+    [wrong, setWrong] = useState<ReadonlySet<string>>(new Set()),
+    [solved, setSolved] = useState(false),
+    started = useRef(Date.now());
+  const ordered = [...content.characters].sort((a, b) => a.level - b.level);
+  const character = ordered[round % ordered.length]!;
+  const targetWord = content.vocabulary.find(
+    (v) => v.level === character.level && v.simplified.includes(character.character),
+  );
+  const distractors = [1, 2, 3]
+    .map((k) => ordered[(round + k * 2) % ordered.length]!)
+    .map((other) =>
+      content.vocabulary.find(
+        (v) => v.level === other.level && v.simplified.includes(other.character),
+      ),
+    )
+    .filter((v) => v && v.id !== targetWord?.id);
+  const options = targetWord
+    ? [targetWord, ...distractors].filter(Boolean).sort((a, b) => a!.id.localeCompare(b!.id))
+    : [];
+  useEffect(() => {
+    setWrong(new Set());
+    setSolved(false);
+    started.current = Date.now();
+  }, [round]);
+  if (!targetWord || options.length < 4) return null;
+  async function choose(wordId: string, contains: boolean) {
+    if (solved) return;
+    if (!contains) {
+      setWrong(new Set(wrong).add(wordId));
+      return;
+    }
+    const firstTry = wrong.size === 0;
+    setSolved(true);
+    await s
+      .record({
+        type: 'answer',
+        itemId: character.id,
+        correct: firstTry,
+        quality: firstTry ? 4 : 1,
+        skill: 'vocabulary',
+        seconds: Math.min(120, Math.max(1, Math.round((Date.now() - started.current) / 1000))),
+      })
+      .catch(() => undefined);
+  }
+  return (
+    <Card style={{ gap: 14 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Txt weight="600">{s.t('similarCharacters')}</Txt>
+        <Badge>HSK {character.level}</Badge>
+      </Row>
+      <Txt size={12} color={c.muted}>
+        {s.t('similarHint')}
+      </Txt>
+      <Txt mandarin serif size={44} style={{ textAlign: 'center' }}>
+        {character.character}
+      </Txt>
+      <View style={{ gap: 10 }}>
+        {options.map((word) => {
+          const contains = word!.simplified.includes(character.character);
+          const state = solved && contains ? 'right' : wrong.has(word!.id) ? 'wrong' : 'idle';
+          return (
+            <Pressable
+              key={word!.id}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: solved && contains, disabled: solved }}
+              disabled={solved || wrong.has(word!.id)}
+              onPress={() => void choose(word!.id, contains)}
+              style={{
+                padding: 14,
+                borderRadius: 12,
+                borderWidth: 1.5,
+                borderColor: state === 'right' ? c.green : state === 'wrong' ? c.red : c.border,
+                backgroundColor: state === 'right' ? c.soft : undefined,
+                opacity: wrong.has(word!.id) ? 0.5 : 1,
+              }}
+            >
+              <Row style={{ justifyContent: 'space-between' }}>
+                <Txt mandarin size={19}>
+                  {word!.simplified}
+                </Txt>
+                {solved ? (
+                  <Txt size={12} color={c.muted}>
+                    {word!.pinyin} · {s.localize(word!.translation)}
+                  </Txt>
+                ) : null}
+              </Row>
+            </Pressable>
+          );
+        })}
+      </View>
+      {solved ? (
+        <Button label={s.t('next')} icon="arrow-forward" onPress={() => setRound(round + 1)} />
+      ) : null}
+    </Card>
   );
 }

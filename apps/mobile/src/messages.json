@@ -361,7 +361,14 @@
     "tutorExplain": "Explain",
     "tutorCorrect": "Correct my sentence",
     "tutorConverse": "Conversation",
-    "historyNote": "This conversation is kept only for this session."
+    "historyNote": "This conversation is kept only for this session.",
+    "components": "Components",
+    "storyAid": "Memory aid — not etymology",
+    "componentsNote": "Component breakdowns are an original HanziGo learning aid. This pack's radical and stroke data are not verified.",
+    "buildCharacter": "Build the character",
+    "buildHint": "Tap the components in order to assemble the character.",
+    "similarCharacters": "Find the character",
+    "similarHint": "Which word contains this character?"
   },
   "zh": {
     "home": "今天",
@@ -725,7 +732,14 @@
     "tutorExplain": "讲解",
     "tutorCorrect": "改句子",
     "tutorConverse": "对话练习",
-    "historyNote": "本次对话仅保留在当前会话中。"
+    "historyNote": "本次对话仅保留在当前会话中。",
+    "components": "部件",
+    "storyAid": "记忆辅助——不是字源",
+    "componentsNote": "部件拆解是 HanziGo 原创的学习辅助。本包的部首和笔画数据未经验证。",
+    "buildCharacter": "组字练习",
+    "buildHint": "按顺序点击部件，组装成完整的字。",
+    "similarCharacters": "找字练习",
+    "similarHint": "哪个词包含这个字？"
   },
   "ar": {
     "home": "اليوم",
@@ -1089,7 +1103,14 @@
     "tutorExplain": "شرح",
     "tutorCorrect": "صحح جملتي",
     "tutorConverse": "محادثة",
-    "historyNote": "يتم الاحتفاظ بهذه المحادثة لهذه الجلسة فقط."
+    "historyNote": "يتم الاحتفاظ بهذه المحادثة لهذه الجلسة فقط.",
+    "components": "المكونات",
+    "storyAid": "وسيلة للذاكرة — ليست أصل الكلمة",
+    "componentsNote": "تفكيك المكونات هو وسيلة تعلم أصلية من HanziGo. بيانات الجذور والسكتات في هذه الحزمة غير موثقة.",
+    "buildCharacter": "ابنِ الحرف",
+    "buildHint": "اضغط على المكونات بالترتيب لتجميع الحرف.",
+    "similarCharacters": "ابحث عن الحرف",
+    "similarHint": "أي كلمة تحتوي على هذا الحرف؟"
   },
   "es": {
     "home": "Hoy",
@@ -1453,7 +1474,14 @@
     "tutorExplain": "Explicar",
     "tutorCorrect": "Corregir mi frase",
     "tutorConverse": "Conversación",
-    "historyNote": "Esta conversación se conserva solo durante esta sesión."
+    "historyNote": "Esta conversación se conserva solo durante esta sesión.",
+    "components": "Componentes",
+    "storyAid": "Ayuda de memoria, no etimología",
+    "componentsNote": "La descomposición en componentes es una ayuda de aprendizaje original de HanziGo. Los datos de radicales y trazos de este paquete no están verificados.",
+    "buildCharacter": "Construye el carácter",
+    "buildHint": "Toca los componentes en orden para formar el carácter.",
+    "similarCharacters": "Encuentra el carácter",
+    "similarHint": "¿Qué palabra contiene este carácter?"
   },
   "fr": {
     "home": "Aujourd'hui",
@@ -1817,7 +1845,14 @@
     "tutorExplain": "Expliquer",
     "tutorCorrect": "Corriger ma phrase",
     "tutorConverse": "Conversation",
-    "historyNote": "Cette conversation n'est conservée que pour cette session."
+    "historyNote": "Cette conversation n'est conservée que pour cette session.",
+    "components": "Composants",
+    "storyAid": "Aide-mémoire — pas une étymologie",
+    "componentsNote": "La décomposition en composants est une aide à l'apprentissage originale de HanziGo. Les données de radical et de traits de ce pack ne sont pas vérifiées.",
+    "buildCharacter": "Construire le caractère",
+    "buildHint": "Touchez les composants dans l'ordre pour assembler le caractère.",
+    "similarCharacters": "Trouver le caractère",
+    "similarHint": "Quel mot contient ce caractère ?"
   },
   "ja": {
     "home": "今日",
@@ -2181,6 +2216,13 @@
     "tutorExplain": "説明",
     "tutorCorrect": "文を直す",
     "tutorConverse": "会話練習",
-    "historyNote": "この会話はこのセッション中のみ保持されます。"
+    "historyNote": "この会話はこのセッション中のみ保持されます。",
+    "components": "構成要素",
+    "storyAid": "記憶の助け — 語源ではありません",
+    "componentsNote": "構成要素の分解はHanziGoオリジナルの学習補助です。このパックの部首と画数データは確認されていません。",
+    "buildCharacter": "漢字を組み立てる",
+    "buildHint": "構成要素を順番にタップして漢字を組み立ててください。",
+    "similarCharacters": "漢字を探す",
+    "similarHint": "この漢字を含む単語はどれですか？"
   }
 }
