@@ -31,11 +31,14 @@ export function VocabularyScreen() {
     [showFilters, setShowFilters] = useState(false),
     [visible, setVisible] = useState(48);
   useEffect(() => setVisible(48), [search, level, filter, topic, part]);
+  // '__none__' selects entries with no recorded metadata (most
+  // reference words), so topic/POS filters never silently hide them:
+  // they are either matched explicitly or the exclusion is labelled.
   const words = lexicon.filter(
     (v) =>
       (!level || v.level === level) &&
-      (topic === 'all' || v.topic === topic) &&
-      (part === 'all' || v.partOfSpeech === part) &&
+      (topic === 'all' || (topic === '__none__' ? v.topic === '' : v.topic === topic)) &&
+      (part === 'all' || (part === '__none__' ? v.partOfSpeech === '' : v.partOfSpeech === part)) &&
       (filter === 'all' ||
         (filter === 'favorites' && s.progress.favorites.has(v.id)) ||
         (filter === 'learned' && s.progress.learned.has(v.id)) ||
@@ -116,6 +119,11 @@ export function VocabularyScreen() {
                   onPress={() => setTopic(l.title.en)}
                 />
               ))}
+            <Chip
+              label={s.t('noTopicRecorded')}
+              active={topic === '__none__'}
+              onPress={() => setTopic('__none__')}
+            />
           </View>
           <Txt size={11} color={c.muted}>
             {s.t('partOfSpeech')}
@@ -130,8 +138,18 @@ export function VocabularyScreen() {
                 onPress={() => setPart(p)}
               />
             ))}
+            <Chip
+              label={s.t('noPartRecorded')}
+              active={part === '__none__'}
+              onPress={() => setPart('__none__')}
+            />
           </View>
         </View>
+      ) : null}
+      {(topic !== 'all' && topic !== '__none__') || (part !== 'all' && part !== '__none__') ? (
+        <Txt size={11} color={c.muted}>
+          {s.t('filterMetadataNote')}
+        </Txt>
       ) : null}
       <Row style={{ justifyContent: 'space-between' }}>
         <Txt size={12} color={c.muted}>

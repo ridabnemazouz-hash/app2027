@@ -327,7 +327,14 @@
     "sevenDays": "Seven-day streak",
     "weeklyActivity": "This week",
     "xpExplanation": "1 XP per correct answer · 10 XP per completed lesson",
-    "referenceLesson": "Reference lesson"
+    "referenceLesson": "Reference lesson",
+    "noTopicRecorded": "No topic recorded",
+    "noPartRecorded": "No part of speech recorded",
+    "filterMetadataNote": "Reference entries without a recorded topic or part of speech are excluded by this filter. Use “No topic recorded” / “No part of speech recorded” to see them.",
+    "matching": "Matching",
+    "matchHint": "Tap a Chinese word, then tap its meaning.",
+    "nextRound": "Next round",
+    "firstTry": "pairs matched on the first try"
   },
   "zh": {
     "home": "今天",
@@ -657,7 +664,14 @@
     "sevenDays": "连续七天",
     "weeklyActivity": "本周",
     "xpExplanation": "每次答对 1 经验值 · 每完成一课 10 经验值",
-    "referenceLesson": "参考课程"
+    "referenceLesson": "参考课程",
+    "noTopicRecorded": "未记录主题",
+    "noPartRecorded": "未记录词性",
+    "filterMetadataNote": "没有主题或词性记录的参考词条会被此筛选排除。使用“未记录主题”/“未记录词性”可查看它们。",
+    "matching": "配对",
+    "matchHint": "点一个中文词，再点它的意思。",
+    "nextRound": "下一轮",
+    "firstTry": "个词对一次配对成功"
   },
   "ar": {
     "home": "اليوم",
@@ -987,7 +1001,14 @@
     "sevenDays": "سلسلة سبعة أيام",
     "weeklyActivity": "هذا الأسبوع",
     "xpExplanation": "نقطة لكل إجابة صحيحة · ١٠ نقاط لكل درس مكتمل",
-    "referenceLesson": "درس مرجعي"
+    "referenceLesson": "درس مرجعي",
+    "noTopicRecorded": "لا يوجد موضوع مسجل",
+    "noPartRecorded": "لا يوجد قسم كلام مسجل",
+    "filterMetadataNote": "يتم استبعاد الإدخالات المرجعية التي ليس لها موضوع أو قسم كلام مسجل بواسطة هذا المرشح. استخدم \"لا يوجد موضوع مسجل\" / \"لا يوجد قسم كلام مسجل\" لرؤيتها.",
+    "matching": "المطابقة",
+    "matchHint": "اضغط على كلمة صينية، ثم اضغط على معناها.",
+    "nextRound": "الجولة التالية",
+    "firstTry": "أزواج تمت مطابقتها من أول محاولة"
   },
   "es": {
     "home": "Hoy",
@@ -1317,6 +1338,13 @@
     "sevenDays": "Racha de siete días",
     "weeklyActivity": "Esta semana",
     "xpExplanation": "1 XP por respuesta correcta · 10 XP por lección completada",
-    "referenceLesson": "Lección de referencia"
+    "referenceLesson": "Lección de referencia",
+    "noTopicRecorded": "Sin tema registrado",
+    "noPartRecorded": "Sin categoría registrada",
+    "filterMetadataNote": "Las entradas de referencia sin tema ni categoría gramatical registrados quedan excluidas por este filtro. Usa «Sin tema registrado» / «Sin categoría registrada» para verlas.",
+    "matching": "Emparejar",
+    "matchHint": "Toca una palabra china y luego toca su significado.",
+    "nextRound": "Siguiente ronda",
+    "firstTry": "parejas acertadas al primer intento"
   }
 }

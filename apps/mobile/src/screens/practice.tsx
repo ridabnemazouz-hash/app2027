@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { dueItems, getLessons, type Exercise } from '../../../../packages/core/src';
 import { content, useLearning } from '../state';
@@ -23,7 +23,8 @@ import { Drawing } from '../drawing';
 import { ExercisePlayer } from '../exercise';
 import { selectExercises } from '../localized-exercise';
 import { storage } from '../storage';
-type Mode = 'flashcards' | 'due' | 'difficult' | 'writing' | 'listening' | 'assessment';
+type Mode =
+  'flashcards' | 'due' | 'difficult' | 'writing' | 'listening' | 'assessment' | 'matching';
 export function PracticeScreen() {
   const s = useLearning(),
     c = usePalette(),
@@ -93,16 +94,24 @@ export function PracticeScreen() {
         subtitle={s.t('assessHint')}
       />
       <View style={styles.wrap}>
-        {(['flashcards', 'due', 'difficult', 'writing', 'listening', 'assessment'] as Mode[]).map(
-          (m) => (
-            <Chip
-              key={m}
-              label={s.t(m === 'writing' ? 'characters' : m)}
-              active={mode === m}
-              onPress={() => setMode(m)}
-            />
-          ),
-        )}
+        {(
+          [
+            'flashcards',
+            'due',
+            'difficult',
+            'writing',
+            'listening',
+            'assessment',
+            'matching',
+          ] as Mode[]
+        ).map((m) => (
+          <Chip
+            key={m}
+            label={s.t(m === 'writing' ? 'characters' : m)}
+            active={mode === m}
+            onPress={() => setMode(m)}
+          />
+        ))}
       </View>
       <View style={{ maxWidth: 800, width: '100%', alignSelf: 'center', gap: 20 }}>
         {mode === 'writing' ? (
@@ -172,6 +181,8 @@ export function PracticeScreen() {
               ))}
             </Card>
           </>
+        ) : mode === 'matching' ? (
+          <MatchingGame key={`${s.preferences.targetLevel}-${s.owner}`} />
         ) : mode === 'assessment' ? (
           <>
             <Txt size={12} color={c.muted}>
@@ -360,5 +371,151 @@ export function PracticeScreen() {
         {error ? <Txt color={c.red}>{s.t('saveError')}</Txt> : null}
       </View>
     </Shell>
+  );
+}
+
+/**
+ * Matching rounds: four Chinese words and their shuffled meanings.
+ * Each completed pair records one ordinary answer event for that word
+ * (correct only when matched without a prior mistake in this round),
+ * so matching feeds the same spaced-repetition state as other modes.
+ */
+function MatchingGame() {
+  const s = useLearning(),
+    c = usePalette(),
+    [round, setRound] = useState(0),
+    [selected, setSelected] = useState<string | null>(null),
+    [matched, setMatched] = useState<ReadonlySet<string>>(new Set()),
+    [mistakes, setMistakes] = useState<ReadonlySet<string>>(new Set()),
+    [wrong, setWrong] = useState<string | null>(null),
+    [totals, setTotals] = useState({ pairs: 0, firstTry: 0 });
+  const pool = lexicon.filter((v) => v.level === s.preferences.targetLevel);
+  const start = pool.length ? (round * 4) % pool.length : 0;
+  const words = pool.length
+    ? Array.from({ length: 4 }, (_, i) => pool[(start + i) % pool.length]!)
+    : [];
+  const shift = (round % 3) + 1;
+  const meanings = words.map((w, i) => words[(i + shift) % words.length]!);
+  useEffect(() => {
+    setSelected(null);
+    setMatched(new Set());
+    setMistakes(new Set());
+    setWrong(null);
+  }, [round]);
+  if (!words.length) return <Empty title={s.t('noWords')} icon="search-outline" />;
+  const done = matched.size === words.length;
+  async function tapMeaning(meaningWordId: string) {
+    if (!selected || matched.has(meaningWordId)) return;
+    if (meaningWordId === selected) {
+      const firstTry = !mistakes.has(selected);
+      const wordId = selected;
+      setMatched(new Set(matched).add(wordId));
+      setTotals((t) => ({ pairs: t.pairs + 1, firstTry: t.firstTry + (firstTry ? 1 : 0) }));
+      setSelected(null);
+      setWrong(null);
+      await s
+        .record({
+          type: 'answer',
+          itemId: wordId,
+          correct: firstTry,
+          quality: firstTry ? 4 : 1,
+          skill: 'vocabulary',
+          seconds: 5,
+        })
+        .catch(() => undefined);
+    } else {
+      setMistakes(new Set(mistakes).add(selected));
+      setWrong(meaningWordId);
+    }
+  }
+  const cellStyle = (state: 'idle' | 'selected' | 'matched' | 'wrong') => ({
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor:
+      state === 'matched'
+        ? c.green
+        : state === 'selected'
+          ? c.red
+          : state === 'wrong'
+            ? c.red
+            : c.border,
+    backgroundColor: state === 'matched' ? c.soft : undefined,
+    opacity: state === 'matched' ? 0.65 : 1,
+  });
+  return (
+    <Card style={{ gap: 16 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Badge>
+          HSK {s.preferences.targetLevel} · {s.t('matching')}
+        </Badge>
+        <Txt size={12} color={c.muted}>
+          {matched.size} / {words.length}
+        </Txt>
+      </Row>
+      <Txt size={12} color={c.muted}>
+        {s.t('matchHint')}
+      </Txt>
+      <Meter value={words.length ? matched.size / words.length : 0} />
+      <Row style={{ alignItems: 'flex-start', gap: 14 }}>
+        <View style={{ flex: 1, gap: 10 }}>
+          {words.map((w) => (
+            <Pressable
+              key={w.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${w.simplified} ${w.pinyin}`}
+              accessibilityState={{ selected: selected === w.id, disabled: matched.has(w.id) }}
+              disabled={matched.has(w.id)}
+              onPress={() => {
+                setSelected(w.id);
+                setWrong(null);
+              }}
+              style={cellStyle(
+                matched.has(w.id) ? 'matched' : selected === w.id ? 'selected' : 'idle',
+              )}
+            >
+              <Txt mandarin size={21}>
+                {w.simplified}
+              </Txt>
+              <Txt mandarin size={11} color={c.muted}>
+                {w.pinyin}
+              </Txt>
+            </Pressable>
+          ))}
+        </View>
+        <View style={{ flex: 1, gap: 10 }}>
+          {meanings.map((w) => (
+            <Pressable
+              key={w.id}
+              accessibilityRole="button"
+              accessibilityLabel={wordMeaning(w, s.locale)}
+              accessibilityState={{ disabled: matched.has(w.id) }}
+              disabled={matched.has(w.id)}
+              onPress={() => void tapMeaning(w.id)}
+              style={cellStyle(matched.has(w.id) ? 'matched' : wrong === w.id ? 'wrong' : 'idle')}
+            >
+              <Txt size={14}>{wordMeaning(w, s.locale)}</Txt>
+              {missingTranslation(w, s.locale) ? (
+                <Txt size={10} color={c.muted}>
+                  {s.t('englishOnly')}
+                </Txt>
+              ) : null}
+            </Pressable>
+          ))}
+        </View>
+      </Row>
+      {done ? (
+        <View style={{ gap: 10 }}>
+          <Txt weight="600">
+            {totals.firstTry}/{totals.pairs} {s.t('firstTry')}
+          </Txt>
+          <Button
+            label={s.t('nextRound')}
+            icon="arrow-forward"
+            onPress={() => setRound(round + 1)}
+          />
+        </View>
+      ) : null}
+    </Card>
   );
 }
