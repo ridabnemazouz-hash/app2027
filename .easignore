@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+web-build/
+coverage/
+playwright-report/
+.git/
+**/.env
+**/.env.*
+!**/.env.example
+*.log
+*.db

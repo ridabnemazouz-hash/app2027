@@ -1,0 +1,2 @@
+id,level,levelRange,sourceId,validation,tags,audio,simplified,traditional,pinyin,translation,partOfSpeech,topic,examples
+v1-1,1,"[1, 1]",hanzigo-original-v1,needs-review,"[""supplementary""]",null,你好,你好,nǐ hǎo,"{""en"": ""hello"", ""zh"": ""问候用语"", ""ar"": ""مرحبًا"", ""es"": ""hola""}",expression,Hello,"[{""chinese"": ""你好！"", ""pinyin"": ""Nǐ hǎo!"", ""translation"": {""en"": ""Hello!"", ""zh"": ""你好！"", ""ar"": ""مرحبًا!"", ""es"": ""¡Hola!""}, ""audio"": null}]"

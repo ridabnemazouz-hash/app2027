@@ -1,0 +1,7 @@
+# Reference vocabulary licence and provenance
+
+The bundled `words.json` is an adaptation of **HSK 3.0 word list, all levels** by Gushi, https://gushichinese.com/hsk-3.0/downloads, licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). English meanings are adapted from [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cc-cedict), also CC BY-SA 4.0. The adapted data is shared under CC BY-SA 4.0. Changes: converted to HanziGo schema, assigned stable IDs, retained target-level/source-band metadata, and omitted example sentences and other fields. The source checksum and full attribution are stored in the dataset. Retrieval and conversion: 2026-10-28.
+
+Gushi describes this as a transcription of the 2025 HSK 3.0 syllabus; it is an independent source, not an official CTI release or independently audited transcription. CTI’s [legal notice](https://www.chinesetest.cn/legal-notice) asserts rights in its materials. Before commercial redistribution, obtain qualified advice and confirm rights to any underlying official materials; the third-party licence alone is not proof that all underlying rights are cleared. All entries require linguistic and syllabus review.
+
+Official level 7–9 source content is grouped; the dataset's 7, 8 and 9 assignments are pedagogical. They are not official separate lists. Eight repeated level/character/pinyin records with different source senses are preserved. No unverified Arabic or Spanish meanings, examples, parts of speech, recordings, or traditional forms were generated.

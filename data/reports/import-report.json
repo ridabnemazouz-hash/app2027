@@ -1,0 +1,16 @@
+{
+  "retrievedAt": "2026-10-28T19:01:20.486Z",
+  "file": "data/curriculum/supplementary-v1/content.json",
+  "result": {
+    "ok": true,
+    "vocabulary": 36,
+    "grammar": 9,
+    "characters": 9,
+    "populatedLevels": 9,
+    "units": 9,
+    "lessons": 18,
+    "exercises": 459,
+    "readings": 9,
+    "verifiedRecords": 0
+  }
+}

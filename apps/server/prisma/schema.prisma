@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id           String @id @default(uuid())
+  email        String @unique
+  name         String
+  passwordHash String
+  preferences  Json
+  createdAt    DateTime @default(now())
+  sessions     Session[]
+  resets       PasswordReset[]
+  events       LearningEvent[]
+}
+model Session {
+  tokenHash String @id
+  userId    String
+  expiresAt DateTime
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@index([userId])
+}
+model PasswordReset {
+  tokenHash String @id
+  userId String
+  expiresAt DateTime
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId])
+}
+model LearningEvent {
+  userId String
+  eventId String
+  occurredAt DateTime
+  payload Json
+  receivedAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@id([userId,eventId])
+  @@index([userId,occurredAt])
+}
+model Curriculum {
+  version String @id
+  payload Json
+  importedAt DateTime @default(now())
+}
