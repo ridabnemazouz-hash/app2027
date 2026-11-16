@@ -24,6 +24,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Install root dependencies (shared packages)
+        run: npm ci --no-audit --no-fund
+
       - name: Install dependencies
         working-directory: apps/mobile
         run: npm ci
