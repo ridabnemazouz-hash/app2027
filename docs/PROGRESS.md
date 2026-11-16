@@ -1,8 +1,27 @@
 # HanziGo development progress
 
-Living document. Baseline audit: `docs/BASELINE_AUDIT.md`.
-Sync contract: `docs/SYNC.md`. Nothing here is pushed or deployed;
-all work is local commits on top of the imported commit `7ddad55`.
+Living document. Sync contract: `docs/SYNC.md`. Nothing here is
+pushed or deployed; all work is local commits.
+
+> **Branch variant — `original-design-updates`.** This branch is
+> the imported application at `7ddad55` with its ORIGINAL design
+> kept exactly as delivered, plus ONLY the functional updates
+> listed below (server reset-token/TRUST_PROXY fix, tutor
+> timeout/level, word-of-day + home shortcuts, delta sync,
+> vocabulary filters + matching, Listening Lab, French/Japanese
+> locales, practice exams, Speaking Lab, writing picker + replay,
+> AI Tutor presets, Pack 3 character stories). The design-upgrade
+> commits on `main` (39bbe8f, 8f46460) were deliberately EXCLUDED
+> by the user's decision on 2026-11-16 after trying the test
+> build: keep the original look, add only the functional updates.
+> The only change to `apps/mobile/src/ui.tsx` versus the import
+> is two icon registrations the new features need (exam, mic).
+> The baseline audit (`docs/BASELINE_AUDIT.md`) lives on `main`.
+>
+> Branch verification (2026-11-16): typecheck 0 errors, tests
+> 44/44 (same as main — the excluded design commits added no
+> tests), lint, format check, curriculum validate and web export
+> all pass.
 
 ## Completed
 
@@ -77,6 +96,7 @@ all work is local commits on top of the imported commit `7ddad55`.
   verified" notice remains.
 
 **Pack 3 — Character stories and radicals (learning only)**
+
 - Story card for each of the 9 stored characters, anchored by a
   seal-inspired 汉 mark: component tiles that assemble into the
   full character plus an original mnemonic story. Components and
