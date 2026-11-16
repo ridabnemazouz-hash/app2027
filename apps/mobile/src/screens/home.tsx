@@ -258,6 +258,12 @@ export function HomeScreen() {
                 note: s.t('listenOnly'),
               },
               {
+                key: 'practiceExam' as const,
+                icon: 'document-text-outline' as const,
+                path: '/exam',
+                note: s.t('examNote'),
+              },
+              {
                 key: 'tutor' as const,
                 icon: 'chatbubble-ellipses-outline' as const,
                 path: '/tutor',

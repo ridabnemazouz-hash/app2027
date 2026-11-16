@@ -338,7 +338,18 @@
     "whatMeans": "What does this mean?",
     "transcript": "Transcript",
     "listeningDone": "Listening session complete",
-    "listeningLabNote": "Sentences from your level's words and readings. Audio is your device's voice unless a recording is supplied."
+    "listeningLabNote": "Sentences from your level's words and readings. Audio is your device's voice unless a recording is supplied.",
+    "practiceExam": "Practice exam",
+    "examNote": "Timed · 300 points · HanziGo format",
+    "examInstructions": "25 questions in three sections: listening, reading, and grammar & vocabulary. Each section is scored out of 100, for a 300-point total. Answers are graded only when you submit.",
+    "examDisclaimer": "HanziGo practice format. This is not an official HSK exam and scores are not comparable to official results.",
+    "startExam": "Start exam",
+    "submitExam": "Submit exam",
+    "unanswered": "questions are still unanswered. Submit anyway?",
+    "resumeExam": "An unfinished attempt was restored.",
+    "examHistory": "Previous attempts",
+    "points": "points",
+    "timeUp": "Time is up. Your answers were submitted."
   },
   "zh": {
     "home": "今天",
@@ -679,7 +690,18 @@
     "whatMeans": "这是什么意思？",
     "transcript": "原文",
     "listeningDone": "听力练习完成",
-    "listeningLabNote": "句子来自你所在等级的词汇和阅读。除非提供录音，否则音频为设备语音。"
+    "listeningLabNote": "句子来自你所在等级的词汇和阅读。除非提供录音，否则音频为设备语音。",
+    "practiceExam": "模拟考试",
+    "examNote": "计时 · 300分 · HanziGo形式",
+    "examInstructions": "共25题，分为听力、阅读、语法与词汇三部分。每部分100分，总分300分。提交后才评分。",
+    "examDisclaimer": "HanziGo练习形式。这不是官方HSK考试，分数不能与官方成绩比较。",
+    "startExam": "开始考试",
+    "submitExam": "提交",
+    "unanswered": "题尚未作答。仍要提交吗？",
+    "resumeExam": "已恢复未完成的答卷。",
+    "examHistory": "历史成绩",
+    "points": "分",
+    "timeUp": "时间到。你的答案已提交。"
   },
   "ar": {
     "home": "اليوم",
@@ -1020,7 +1042,18 @@
     "whatMeans": "ما معنى هذا؟",
     "transcript": "النص",
     "listeningDone": "اكتملت جلسة الاستماع",
-    "listeningLabNote": "جمل من كلمات وقراءات مستواك. الصوت هو صوت جهازك ما لم يتم توفير تسجيل."
+    "listeningLabNote": "جمل من كلمات وقراءات مستواك. الصوت هو صوت جهازك ما لم يتم توفير تسجيل.",
+    "practiceExam": "اختبار تدريبي",
+    "examNote": "مؤقت · 300 نقطة · صيغة HanziGo",
+    "examInstructions": "25 سؤالاً في ثلاثة أقسام: الاستماع والقراءة والقواعد والمفردات. كل قسم من 100 نقطة، والمجموع 300 نقطة. يتم التصحيح فقط عند الإرسال.",
+    "examDisclaimer": "صيغة تدريب HanziGo. هذا ليس اختبار HSK رسميًا والدرجات غير قابلة للمقارنة بالنتائج الرسمية.",
+    "startExam": "ابدأ الاختبار",
+    "submitExam": "إرسال الاختبار",
+    "unanswered": "أسئلة ما زالت بدون إجابة. الإرسال على أي حال؟",
+    "resumeExam": "تمت استعادة محاولة غير مكتملة.",
+    "examHistory": "المحاولات السابقة",
+    "points": "نقاط",
+    "timeUp": "انتهى الوقت. تم إرسال إجاباتك."
   },
   "es": {
     "home": "Hoy",
@@ -1361,7 +1394,18 @@
     "whatMeans": "¿Qué significa esto?",
     "transcript": "Transcripción",
     "listeningDone": "Sesión de escucha completada",
-    "listeningLabNote": "Frases de las palabras y lecturas de tu nivel. El audio es la voz de tu dispositivo salvo que se proporcione una grabación."
+    "listeningLabNote": "Frases de las palabras y lecturas de tu nivel. El audio es la voz de tu dispositivo salvo que se proporcione una grabación.",
+    "practiceExam": "Examen de práctica",
+    "examNote": "Cronometrado · 300 puntos · formato HanziGo",
+    "examInstructions": "25 preguntas en tres secciones: comprensión auditiva, lectura y gramática y vocabulario. Cada sección vale 100 puntos, 300 en total. Las respuestas se califican solo al enviar.",
+    "examDisclaimer": "Formato de práctica de HanziGo. No es un examen oficial de HSK y las puntuaciones no son comparables con resultados oficiales.",
+    "startExam": "Comenzar examen",
+    "submitExam": "Enviar examen",
+    "unanswered": "preguntas siguen sin respuesta. ¿Enviar de todos modos?",
+    "resumeExam": "Se restauró un intento sin terminar.",
+    "examHistory": "Intentos anteriores",
+    "points": "puntos",
+    "timeUp": "Se acabó el tiempo. Tus respuestas fueron enviadas."
   },
   "fr": {
     "home": "Aujourd'hui",
@@ -1702,7 +1746,18 @@
     "whatMeans": "Que signifie ceci ?",
     "transcript": "Transcription",
     "listeningDone": "Session d'écoute terminée",
-    "listeningLabNote": "Phrases tirées des mots et lectures de votre niveau. L'audio est la voix de votre appareil sauf si un enregistrement est fourni."
+    "listeningLabNote": "Phrases tirées des mots et lectures de votre niveau. L'audio est la voix de votre appareil sauf si un enregistrement est fourni.",
+    "practiceExam": "Examen d'entraînement",
+    "examNote": "Chronométré · 300 points · format HanziGo",
+    "examInstructions": "25 questions en trois sections : écoute, lecture, grammaire et vocabulaire. Chaque section est notée sur 100, soit 300 points au total. Les réponses ne sont corrigées qu'à l'envoi.",
+    "examDisclaimer": "Format d'entraînement HanziGo. Ce n'est pas un examen HSK officiel et les scores ne sont pas comparables aux résultats officiels.",
+    "startExam": "Commencer l'examen",
+    "submitExam": "Envoyer l'examen",
+    "unanswered": "questions sont encore sans réponse. Envoyer quand même ?",
+    "resumeExam": "Une tentative inachevée a été restaurée.",
+    "examHistory": "Tentatives précédentes",
+    "points": "points",
+    "timeUp": "Temps écoulé. Vos réponses ont été envoyées."
   },
   "ja": {
     "home": "今日",
@@ -2043,6 +2098,17 @@
     "whatMeans": "これはどういう意味ですか？",
     "transcript": "トランスクリプト",
     "listeningDone": "リスニングセッション完了",
-    "listeningLabNote": "あなたのレベルの単語と読み物からの文。録音が提供されていない限り、音声はデバイスの音声です。"
+    "listeningLabNote": "あなたのレベルの単語と読み物からの文。録音が提供されていない限り、音声はデバイスの音声です。",
+    "practiceExam": "模擬試験",
+    "examNote": "制限時間あり · 300点 · HanziGo形式",
+    "examInstructions": "リスニング、読解、文法・単語の3セクション、全25問。各セクション100点、合計300点。採点は提出時にのみ行われます。",
+    "examDisclaimer": "HanziGoの練習形式です。公式HSK試験ではなく、スコアは公式結果と比較できません。",
+    "startExam": "試験を始める",
+    "submitExam": "提出する",
+    "unanswered": "問が未回答です。それでも提出しますか？",
+    "resumeExam": "未完了の回答が復元されました。",
+    "examHistory": "過去の結果",
+    "points": "点",
+    "timeUp": "時間切れです。回答が提出されました。"
   }
 }
