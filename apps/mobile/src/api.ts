@@ -9,10 +9,11 @@ export async function api<T>(
   body?: unknown,
   token?: string,
   method?: string,
+  timeoutMs = 12000,
 ): Promise<T> {
   let response: Response;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     response = await fetch(base + path, {
       method: method ?? (body ? 'POST' : 'GET'),

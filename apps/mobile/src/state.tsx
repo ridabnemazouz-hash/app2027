@@ -47,7 +47,7 @@ type Store = {
   ) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
-  request: (path: string, body?: unknown, method?: string) => Promise<unknown>;
+  request: (path: string, body?: unknown, method?: string, timeoutMs?: number) => Promise<unknown>;
   clearError: () => void;
   owner: string;
 };
@@ -294,7 +294,8 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     authenticate,
     logout,
     deleteAccount,
-    request: (path, body, method) => api(path, body, tokenRef.current ?? undefined, method),
+    request: (path, body, method, timeoutMs) =>
+      api(path, body, tokenRef.current ?? undefined, method, timeoutMs),
     clearError: () => {
       setError('');
       setNotice('');

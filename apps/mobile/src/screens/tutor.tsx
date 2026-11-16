@@ -15,11 +15,19 @@ export function TutorScreen() {
     setBusy(true);
     setError(null);
     try {
-      const result = (await s.request('/tutor', {
-        message: question,
-        locale: s.locale,
-        level: s.preferences.targetLevel,
-      })) as { reply: string };
+      // The server allows its AI provider 20s; the default 12s client
+      // timeout would abort slow replies, so tutor calls get 30s.
+      // The level is the one selected on this screen, not the profile's.
+      const result = (await s.request(
+        '/tutor',
+        {
+          message: question,
+          locale: s.locale,
+          level,
+        },
+        undefined,
+        30000,
+      )) as { reply: string };
       setReply(result.reply);
     } catch (e) {
       setError(
