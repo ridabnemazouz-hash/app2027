@@ -169,7 +169,7 @@
     "noLesson": "This lesson could not be found.",
     "repeat": "Repeat",
     "pronunciation": "Listen, then repeat aloud",
-    "noScoring": "Speaking practice is self-assessed. No microphone recording or pronunciation score is produced.",
+    "noScoring": "Speaking practice is self-assessed. Recordings stay on this device and no pronunciation score is produced.",
     "retry": "Try again",
     "of": "of",
     "recent": "Recently reviewed",
@@ -349,7 +349,14 @@
     "resumeExam": "An unfinished attempt was restored.",
     "examHistory": "Previous attempts",
     "points": "points",
-    "timeUp": "Time is up. Your answers were submitted."
+    "timeUp": "Time is up. Your answers were submitted.",
+    "speaking": "Speaking",
+    "record": "Record",
+    "stopRecording": "Stop recording",
+    "playRecording": "Play my recording",
+    "micDenied": "Microphone access was not granted. You can still listen and repeat aloud.",
+    "speakingGuide": "Listen to the model, record yourself, then compare. Focus on the tones; there is no automatic score.",
+    "recordingUnsupported": "Recording is not available on this device or browser. You can still listen and repeat aloud."
   },
   "zh": {
     "home": "今天",
@@ -521,7 +528,7 @@
     "noLesson": "未找到此课程。",
     "repeat": "重学",
     "pronunciation": "听后大声跟读",
-    "noScoring": "口语练习采用自评，不录音也不生成发音评分。",
+    "noScoring": "口语练习为自我评估。录音保留在此设备上，不会产生发音分数。",
     "retry": "重试",
     "of": "/",
     "recent": "最近复习",
@@ -701,7 +708,14 @@
     "resumeExam": "已恢复未完成的答卷。",
     "examHistory": "历史成绩",
     "points": "分",
-    "timeUp": "时间到。你的答案已提交。"
+    "timeUp": "时间到。你的答案已提交。",
+    "speaking": "口语",
+    "record": "录音",
+    "stopRecording": "停止录音",
+    "playRecording": "播放我的录音",
+    "micDenied": "未获得麦克风权限。你仍然可以听并大声跟读。",
+    "speakingGuide": "听示范，录下自己的声音，然后对比。注意声调；没有自动评分。",
+    "recordingUnsupported": "此设备或浏览器不支持录音。你仍然可以听并大声跟读。"
   },
   "ar": {
     "home": "اليوم",
@@ -873,7 +887,7 @@
     "noLesson": "لم يتم العثور على الدرس.",
     "repeat": "كرّر",
     "pronunciation": "استمع ثم كرّر بصوت عالٍ",
-    "noScoring": "التدريب الشفهي ذاتي التقييم. لا يوجد تسجيل أو تقييم آلي للنطق.",
+    "noScoring": "ممارسة التحدث هي تقييم ذاتي. تبقى التسجيلات على هذا الجهاز ولا يتم إنتاج درجة نطق.",
     "retry": "حاول مجددًا",
     "of": "من",
     "recent": "تمت مراجعتها مؤخرًا",
@@ -1053,7 +1067,14 @@
     "resumeExam": "تمت استعادة محاولة غير مكتملة.",
     "examHistory": "المحاولات السابقة",
     "points": "نقاط",
-    "timeUp": "انتهى الوقت. تم إرسال إجاباتك."
+    "timeUp": "انتهى الوقت. تم إرسال إجاباتك.",
+    "speaking": "التحدث",
+    "record": "تسجيل",
+    "stopRecording": "إيقاف التسجيل",
+    "playRecording": "تشغيل تسجيلي",
+    "micDenied": "لم يتم منح إذن الميكروفون. يمكنك الاستماع والتكرار بصوت عالٍ.",
+    "speakingGuide": "استمع إلى النموذج، سجل نفسك، ثم قارن. ركز على النغمات؛ لا توجد درجة تلقائية.",
+    "recordingUnsupported": "التسجيل غير متاح على هذا الجهاز أو المتصفح. يمكنك الاستماع والتكرار بصوت عالٍ."
   },
   "es": {
     "home": "Hoy",
@@ -1225,7 +1246,7 @@
     "noLesson": "No se encontró esta lección.",
     "repeat": "Repetir",
     "pronunciation": "Escucha y repite en voz alta",
-    "noScoring": "La práctica oral es autoevaluada. No se graba ni se puntúa la pronunciación.",
+    "noScoring": "La práctica oral es autoevaluada. Las grabaciones permanecen en este dispositivo y no se produce puntuación de pronunciación.",
     "retry": "Reintentar",
     "of": "de",
     "recent": "Repasadas recientemente",
@@ -1405,7 +1426,14 @@
     "resumeExam": "Se restauró un intento sin terminar.",
     "examHistory": "Intentos anteriores",
     "points": "puntos",
-    "timeUp": "Se acabó el tiempo. Tus respuestas fueron enviadas."
+    "timeUp": "Se acabó el tiempo. Tus respuestas fueron enviadas.",
+    "speaking": "Hablar",
+    "record": "Grabar",
+    "stopRecording": "Detener grabación",
+    "playRecording": "Escuchar mi grabación",
+    "micDenied": "No se concedió acceso al micrófono. Aún puedes escuchar y repetir en voz alta.",
+    "speakingGuide": "Escucha el modelo, grábate y compara. Concéntrate en los tonos; no hay puntuación automática.",
+    "recordingUnsupported": "La grabación no está disponible en este dispositivo o navegador. Aún puedes escuchar y repetir en voz alta."
   },
   "fr": {
     "home": "Aujourd'hui",
@@ -1577,7 +1605,7 @@
     "noLesson": "Cette leçon est introuvable.",
     "repeat": "Répéter",
     "pronunciation": "Écoutez, puis répétez à voix haute",
-    "noScoring": "La pratique orale est auto-évaluée. Aucun enregistrement au microphone ni score de prononciation n'est produit.",
+    "noScoring": "La pratique orale est auto-évaluée. Les enregistrements restent sur cet appareil et aucun score de prononciation n'est produit.",
     "retry": "Réessayer",
     "of": "sur",
     "recent": "Récemment révisés",
@@ -1757,7 +1785,14 @@
     "resumeExam": "Une tentative inachevée a été restaurée.",
     "examHistory": "Tentatives précédentes",
     "points": "points",
-    "timeUp": "Temps écoulé. Vos réponses ont été envoyées."
+    "timeUp": "Temps écoulé. Vos réponses ont été envoyées.",
+    "speaking": "Expression orale",
+    "record": "Enregistrer",
+    "stopRecording": "Arrêter l'enregistrement",
+    "playRecording": "Écouter mon enregistrement",
+    "micDenied": "L'accès au microphone n'a pas été accordé. Vous pouvez toujours écouter et répéter à voix haute.",
+    "speakingGuide": "Écoutez le modèle, enregistrez-vous, puis comparez. Concentrez-vous sur les tons ; il n'y a pas de note automatique.",
+    "recordingUnsupported": "L'enregistrement n'est pas disponible sur cet appareil ou ce navigateur. Vous pouvez toujours écouter et répéter à voix haute."
   },
   "ja": {
     "home": "今日",
@@ -1929,7 +1964,7 @@
     "noLesson": "このレッスンは見つかりませんでした。",
     "repeat": "繰り返す",
     "pronunciation": "聞いてから声に出して繰り返しましょう",
-    "noScoring": "スピーキング練習は自己評価です。マイク録音や発音スコアは生成されません。",
+    "noScoring": "スピーキング練習は自己評価です。録音はこのデバイスに残り、発音スコアは生成されません。",
     "retry": "再試行",
     "of": "/",
     "recent": "最近復習したもの",
@@ -2109,6 +2144,13 @@
     "resumeExam": "未完了の回答が復元されました。",
     "examHistory": "過去の結果",
     "points": "点",
-    "timeUp": "時間切れです。回答が提出されました。"
+    "timeUp": "時間切れです。回答が提出されました。",
+    "speaking": "スピーキング",
+    "record": "録音",
+    "stopRecording": "録音を停止",
+    "playRecording": "自分の録音を再生",
+    "micDenied": "マイクの許可が得られませんでした。聞いて声に出して繰り返すことはできます。",
+    "speakingGuide": "モデルを聞き、自分を録音して比べてください。声調に集中しましょう。自動採点はありません。",
+    "recordingUnsupported": "このデバイスまたはブラウザでは録音できません。聞いて声に出して繰り返すことはできます。"
   }
 }

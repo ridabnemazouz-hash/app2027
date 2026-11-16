@@ -17,6 +17,15 @@ import {
   usePalette,
   styles,
 } from '../ui';
+import {
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioPlayer,
+  useAudioRecorder,
+  useAudioRecorderState,
+} from 'expo-audio';
+import { File } from 'expo-file-system';
 import { findWord, lexicon, missingTranslation, wordMeaning } from '../lexicon';
 import { Pronunciation } from '../audio';
 import { Drawing } from '../drawing';
@@ -24,7 +33,14 @@ import { ExercisePlayer } from '../exercise';
 import { selectExercises } from '../localized-exercise';
 import { storage } from '../storage';
 type Mode =
-  'flashcards' | 'due' | 'difficult' | 'writing' | 'listening' | 'assessment' | 'matching';
+  | 'flashcards'
+  | 'due'
+  | 'difficult'
+  | 'writing'
+  | 'listening'
+  | 'assessment'
+  | 'matching'
+  | 'speaking';
 export function PracticeScreen() {
   const s = useLearning(),
     c = usePalette(),
@@ -102,6 +118,7 @@ export function PracticeScreen() {
             'difficult',
             'writing',
             'listening',
+            'speaking',
             'assessment',
             'matching',
           ] as Mode[]
@@ -186,6 +203,8 @@ export function PracticeScreen() {
           <MatchingGame key={`${s.preferences.targetLevel}-${s.owner}`} />
         ) : mode === 'listening' ? (
           <ListeningLab key={`${s.preferences.targetLevel}-${s.owner}`} />
+        ) : mode === 'speaking' ? (
+          <SpeakingLab key={`${s.preferences.targetLevel}-${s.owner}`} />
         ) : mode === 'assessment' ? (
           <>
             <Txt size={12} color={c.muted}>
@@ -655,6 +674,196 @@ function ListeningLab() {
           />
         </View>
       ) : null}
+    </Card>
+  );
+}
+
+/**
+ * Speaking practice: listen to a model sentence (device voice or a
+ * supplied recording), record yourself, replay and compare. There is
+ * NO pronunciation or tone scoring — no acoustic analysis exists in
+ * the app, and the UI says so. Practice is self-assessed with the
+ * usual quality rating, recorded as a 'self' event (never counted in
+ * objective accuracy). Only the current item's recording is kept, in
+ * the device's temporary cache; it is deleted when replaced or when
+ * moving to another sentence.
+ */
+function SpeakingLab() {
+  const s = useLearning(),
+    c = usePalette(),
+    [index, setIndex] = useState(0),
+    [recUri, setRecUri] = useState<string | null>(null),
+    [denied, setDenied] = useState(false),
+    [unsupported, setUnsupported] = useState(false),
+    [quality, setQuality] = useState(4),
+    [savedItem, setSavedItem] = useState<string | null>(null),
+    started = useRef(Date.now());
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(recorder, 250);
+  const player = useAudioPlayer(recUri ? { uri: recUri } : undefined);
+  const level = s.preferences.targetLevel;
+  const items = [
+    ...content.vocabulary
+      .filter((v) => v.level === level)
+      .map((v) => ({
+        itemId: v.id,
+        chinese: v.examples[0]!.chinese,
+        pinyin: v.examples[0]!.pinyin,
+        translation: s.localize(v.examples[0]!.translation),
+        audio: v.examples[0]!.audio,
+      })),
+    ...content.readings
+      .filter((r) => r.level === level)
+      .flatMap((r) =>
+        r.paragraphs.map((p) => ({
+          itemId: r.id,
+          chinese: p.chinese,
+          pinyin: p.pinyin,
+          translation: s.localize(p.translation),
+          audio: p.audio,
+        })),
+      ),
+  ];
+  const item = items[index];
+  function discardRecording() {
+    if (recUri) {
+      try {
+        new File(recUri).delete();
+      } catch {
+        // Temporary cache is cleared by the OS; deletion is best-effort.
+      }
+      setRecUri(null);
+    }
+  }
+  async function toggleRecord() {
+    try {
+      if (recorderState.isRecording) {
+        await recorder.stop();
+        setRecUri(recorder.uri);
+        return;
+      }
+      const permission = await AudioModule.requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        setDenied(true);
+        return;
+      }
+      setDenied(false);
+      discardRecording();
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+    } catch {
+      setUnsupported(true);
+    }
+  }
+  if (!item) return <Empty title={s.t('noItems')} icon="mic-outline" />;
+  const saved = savedItem === `${item.itemId}:${index}`;
+  return (
+    <Card style={{ gap: 16 }}>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Badge>
+          HSK {level} · {s.t('speaking')}
+        </Badge>
+        <Txt size={12} color={c.muted}>
+          {index + 1} / {items.length}
+        </Txt>
+      </Row>
+      <Txt size={12} color={c.muted}>
+        {s.t('speakingGuide')}
+      </Txt>
+      <Txt mandarin serif size={30} style={{ textAlign: 'center' }}>
+        {item.chinese}
+      </Txt>
+      <Txt mandarin size={15} color={c.red} style={{ textAlign: 'center' }}>
+        {item.pinyin}
+      </Txt>
+      <Txt size={13} color={c.muted} style={{ textAlign: 'center' }}>
+        {item.translation}
+      </Txt>
+      <Pronunciation text={item.chinese} audio={item.audio} />
+      {unsupported ? (
+        <Txt size={12} color={c.muted}>
+          {s.t('recordingUnsupported')}
+        </Txt>
+      ) : denied ? (
+        <Txt size={12} color={c.red}>
+          {s.t('micDenied')}
+        </Txt>
+      ) : (
+        <Row style={{ gap: 10, justifyContent: 'center' }}>
+          <Button
+            label={recorderState.isRecording ? s.t('stopRecording') : s.t('record')}
+            icon={recorderState.isRecording ? 'stop-outline' : 'mic-outline'}
+            variant={recorderState.isRecording ? 'primary' : 'secondary'}
+            onPress={() => void toggleRecord()}
+          />
+          {recUri && !recorderState.isRecording ? (
+            <Button
+              label={s.t('playRecording')}
+              icon="play-outline"
+              variant="secondary"
+              onPress={() => {
+                player.seekTo(0);
+                player.play();
+              }}
+            />
+          ) : null}
+        </Row>
+      )}
+      <Txt size={11} color={c.muted}>
+        {s.t('noScoring')}
+      </Txt>
+      <View style={styles.wrap}>
+        {[2, 4, 5].map((q) => (
+          <Chip
+            key={q}
+            label={s.t(q === 2 ? 'hard' : q === 4 ? 'good' : 'easy')}
+            active={quality === q}
+            onPress={() => setQuality(q)}
+          />
+        ))}
+      </View>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <Button
+          label={s.t('back')}
+          variant="secondary"
+          disabled={index === 0}
+          onPress={() => {
+            discardRecording();
+            setIndex(index - 1);
+            started.current = Date.now();
+          }}
+        />
+        <Button
+          label={saved ? s.t('saved') : s.t('savePractice')}
+          disabled={saved}
+          onPress={() => {
+            void s
+              .record({
+                type: 'answer',
+                itemId: item.itemId,
+                correct: false,
+                quality,
+                skill: 'self',
+                seconds: Math.min(
+                  120,
+                  Math.max(1, Math.round((Date.now() - started.current) / 1000)),
+                ),
+              })
+              .then(() => setSavedItem(`${item.itemId}:${index}`))
+              .catch(() => undefined);
+          }}
+        />
+        <Button
+          label={s.t('next')}
+          disabled={index + 1 >= items.length}
+          onPress={() => {
+            discardRecording();
+            setIndex(index + 1);
+            started.current = Date.now();
+          }}
+        />
+      </Row>
     </Card>
   );
 }

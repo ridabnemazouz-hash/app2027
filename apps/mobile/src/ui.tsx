@@ -56,6 +56,7 @@ import Check from 'lucide-react-native/icons/check';
 import Flag from 'lucide-react-native/icons/flag';
 import Ellipsis from 'lucide-react-native/icons/ellipsis';
 import FileText from 'lucide-react-native/icons/file-text';
+import Mic from 'lucide-react-native/icons/mic';
 import type { LucideIcon } from 'lucide-react-native';
 import { router, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -139,6 +140,7 @@ const iconMap = {
   'flag-outline': Flag,
   'ellipsis-horizontal-outline': Ellipsis,
   'document-text-outline': FileText,
+  'mic-outline': Mic,
 } satisfies Record<string, LucideIcon>;
 export type IconName = keyof typeof iconMap;
 export function Icon({
