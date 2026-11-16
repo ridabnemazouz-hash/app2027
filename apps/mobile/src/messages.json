@@ -357,7 +357,11 @@
     "micDenied": "Microphone access was not granted. You can still listen and repeat aloud.",
     "speakingGuide": "Listen to the model, record yourself, then compare. Focus on the tones; there is no automatic score.",
     "recordingUnsupported": "Recording is not available on this device or browser. You can still listen and repeat aloud.",
-    "replayDrawing": "Replay drawing"
+    "replayDrawing": "Replay drawing",
+    "tutorExplain": "Explain",
+    "tutorCorrect": "Correct my sentence",
+    "tutorConverse": "Conversation",
+    "historyNote": "This conversation is kept only for this session."
   },
   "zh": {
     "home": "今天",
@@ -717,7 +721,11 @@
     "micDenied": "未获得麦克风权限。你仍然可以听并大声跟读。",
     "speakingGuide": "听示范，录下自己的声音，然后对比。注意声调；没有自动评分。",
     "recordingUnsupported": "此设备或浏览器不支持录音。你仍然可以听并大声跟读。",
-    "replayDrawing": "回放书写"
+    "replayDrawing": "回放书写",
+    "tutorExplain": "讲解",
+    "tutorCorrect": "改句子",
+    "tutorConverse": "对话练习",
+    "historyNote": "本次对话仅保留在当前会话中。"
   },
   "ar": {
     "home": "اليوم",
@@ -1077,7 +1085,11 @@
     "micDenied": "لم يتم منح إذن الميكروفون. يمكنك الاستماع والتكرار بصوت عالٍ.",
     "speakingGuide": "استمع إلى النموذج، سجل نفسك، ثم قارن. ركز على النغمات؛ لا توجد درجة تلقائية.",
     "recordingUnsupported": "التسجيل غير متاح على هذا الجهاز أو المتصفح. يمكنك الاستماع والتكرار بصوت عالٍ.",
-    "replayDrawing": "إعادة عرض الرسم"
+    "replayDrawing": "إعادة عرض الرسم",
+    "tutorExplain": "شرح",
+    "tutorCorrect": "صحح جملتي",
+    "tutorConverse": "محادثة",
+    "historyNote": "يتم الاحتفاظ بهذه المحادثة لهذه الجلسة فقط."
   },
   "es": {
     "home": "Hoy",
@@ -1437,7 +1449,11 @@
     "micDenied": "No se concedió acceso al micrófono. Aún puedes escuchar y repetir en voz alta.",
     "speakingGuide": "Escucha el modelo, grábate y compara. Concéntrate en los tonos; no hay puntuación automática.",
     "recordingUnsupported": "La grabación no está disponible en este dispositivo o navegador. Aún puedes escuchar y repetir en voz alta.",
-    "replayDrawing": "Reproducir dibujo"
+    "replayDrawing": "Reproducir dibujo",
+    "tutorExplain": "Explicar",
+    "tutorCorrect": "Corregir mi frase",
+    "tutorConverse": "Conversación",
+    "historyNote": "Esta conversación se conserva solo durante esta sesión."
   },
   "fr": {
     "home": "Aujourd'hui",
@@ -1797,7 +1813,11 @@
     "micDenied": "L'accès au microphone n'a pas été accordé. Vous pouvez toujours écouter et répéter à voix haute.",
     "speakingGuide": "Écoutez le modèle, enregistrez-vous, puis comparez. Concentrez-vous sur les tons ; il n'y a pas de note automatique.",
     "recordingUnsupported": "L'enregistrement n'est pas disponible sur cet appareil ou ce navigateur. Vous pouvez toujours écouter et répéter à voix haute.",
-    "replayDrawing": "Rejouer le tracé"
+    "replayDrawing": "Rejouer le tracé",
+    "tutorExplain": "Expliquer",
+    "tutorCorrect": "Corriger ma phrase",
+    "tutorConverse": "Conversation",
+    "historyNote": "Cette conversation n'est conservée que pour cette session."
   },
   "ja": {
     "home": "今日",
@@ -2157,6 +2177,10 @@
     "micDenied": "マイクの許可が得られませんでした。聞いて声に出して繰り返すことはできます。",
     "speakingGuide": "モデルを聞き、自分を録音して比べてください。声調に集中しましょう。自動採点はありません。",
     "recordingUnsupported": "このデバイスまたはブラウザでは録音できません。聞いて声に出して繰り返すことはできます。",
-    "replayDrawing": "描画を再生"
+    "replayDrawing": "描画を再生",
+    "tutorExplain": "説明",
+    "tutorCorrect": "文を直す",
+    "tutorConverse": "会話練習",
+    "historyNote": "この会話はこのセッション中のみ保持されます。"
   }
 }
