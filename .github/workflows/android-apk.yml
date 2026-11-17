@@ -3,7 +3,7 @@ name: Android APK (test build)
 on:
   workflow_dispatch:
   push:
-    branches: [original-design-updates]
+    branches: [original-design-updates, hanzigo-original-apk]
     paths:
       - '.github/workflows/android-apk.yml'
 
